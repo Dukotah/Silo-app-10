@@ -11,6 +11,7 @@ import {
   ACHIEVEMENTS, getTaskStreak, XPL,
 } from './useCoreEngine.js';
 import { parse } from './coreParser.js';
+import { SkillTreeTab } from './SkillTreeTab.js';
 
 var e         = React.createElement;
 var useState  = React.useState;
@@ -674,135 +675,10 @@ function LineChart30(props) {
   );
 }
 
-// ─── SIGNALS TAB ──────────────────────────────────────────────────────────────
-function SignalsTab(props) {
-  var state=props.state;
-  var ws=state.weeklyShifts||{}, log=state.log||[];
-  var s1=useState('7D'); var view=s1[0],setView=s1[1];
-  var SHIFT_COLORS={HEAVY:'#f97316',HEAT:'#ef4444',CLEAR:'#22c55e',REFLECTIVE:'#4a9eff'};
-  var SHIFT_LABELS={HEAVY:'Heavy / Stress',HEAT:'Turbulent / Heat',CLEAR:'Clear / Focus',REFLECTIVE:'Reflective'};
-
-  var days7=[];
-  for (var di=6;di>=0;di--) {
-    var d=new Date(); d.setDate(d.getDate()-di);
-    var key=d.toISOString().slice(0,10);
-    var lbl=d.toLocaleDateString('en-US',{weekday:'short'}).slice(0,2).toUpperCase();
-    var data=ws[key]||{HEAVY:0,HEAT:0,CLEAR:0,REFLECTIVE:0};
-    var total=data.HEAVY+data.HEAT+data.CLEAR+data.REFLECTIVE;
-    var dom=null,dv=0;
-    ['HEAVY','HEAT','CLEAR','REFLECTIVE'].forEach(function(k){if(data[k]>dv){dv=data[k];dom=k;}});
-    days7.push({key:key,lbl:lbl,data:data,total:total,dom:dom});
-  }
-  var mx7=Math.max.apply(null,days7.map(function(d){return d.total;}))||1;
-
-  var totals={HEAVY:0,HEAT:0,CLEAR:0,REFLECTIVE:0};
-  log.forEach(function(e2){if(e2.primaryShift)totals[e2.primaryShift]=(totals[e2.primaryShift]||0)+1;});
-  var totalSig=totals.HEAVY+totals.HEAT+totals.CLEAR+totals.REFLECTIVE||1;
-
-  return e('div',{style:{animation:'fadeUp 0.35s ease'}},
-    // Weekly / 30-day landscape
-    e('div',{style:card},
-      e('div',{style:cardH},
-        e('span',{style:mn(9,'#94a3b8',{fontWeight:700})},'SIGNAL LANDSCAPE'),
-        e('div',{style:row({gap:4})},
-          ['7D','30D'].map(function(v){
-            var on=view===v;
-            return e('button',{key:v,onClick:function(){setView(v);},style:{padding:'4px 10px',background:on?'#0a1628':'transparent',border:'1px solid '+(on?'#1e3a5f':'#0f1520'),borderRadius:6,fontSize:8,color:on?'#4a9eff':'#2d3748',fontFamily:"'DM Mono',monospace",cursor:'pointer',transition:'all 0.15s'}},v);
-          })
-        )
-      ),
-      e('div',{style:{padding:'14px 15px'}},
-        cond(view==='7D',
-          e('div',null,
-            e('div',{style:{display:'flex',gap:4,alignItems:'flex-end',height:72,marginBottom:8}},
-              days7.map(function(day){
-                var bh=day.total>0?Math.max((day.total/mx7)*60,4):2;
-                var col=day.dom?SHIFT_COLORS[day.dom]:'#151e30';
-                return e('div',{key:day.key,style:{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:3}},
-                  e('div',{style:{width:'100%',height:64,display:'flex',alignItems:'flex-end',background:'#080b12',borderRadius:4,overflow:'hidden',border:'1px solid #0a0d14'}},
-                    cond(day.total>0,e('div',{style:{width:'100%',height:bh+'px',background:col,borderRadius:'3px 3px 0 0',opacity:0.85,transition:'height 0.8s ease'}}))
-                  ),
-                  e('span',{style:mn(7,'#2d3748')},day.lbl)
-                );
-              })
-            )
-          )
-        ),
-        cond(view==='30D',
-          e('div',{style:{paddingBottom:4}},
-            e(LineChart30,{weeklyShifts:ws})
-          )
-        ),
-        e('div',{style:{display:'flex',gap:12,flexWrap:'wrap',marginTop:8}},
-          ['HEAVY','HEAT','CLEAR','REFLECTIVE'].map(function(k){
-            return e('div',{key:k,style:row({gap:5})},
-              e('div',{style:{width:6,height:6,borderRadius:'50%',background:SHIFT_COLORS[k]}}),
-              e('span',{style:mn(8,'#475569')},k==='REFLECTIVE'?'Reflect':SHIFT_LABELS[k].split(' / ')[0])
-            );
-          })
-        )
-      )
-    ),
-
-    // Signal breakdown
-    e('div',{style:card},
-      e('div',{style:cardH},e('span',{style:mn(9,'#94a3b8',{fontWeight:700})},'ALL-TIME SIGNAL PROFILE')),
-      log.length===0
-        ? e('div',{style:{padding:'24px',textAlign:'center',color:'#2d3748',fontFamily:"'DM Mono',monospace",fontSize:11}},'No signals recorded yet.')
-        : e('div',{style:{padding:'14px 15px',display:'flex',flexDirection:'column',gap:10}},
-            ['HEAVY','HEAT','CLEAR','REFLECTIVE'].map(function(k){
-              var pct2=Math.round((totals[k]/totalSig)*100);
-              return e('div',{key:k},
-                e('div',{style:row({justifyContent:'space-between',marginBottom:5})},
-                  e('div',{style:row({gap:7})},
-                    e('div',{style:{width:7,height:7,borderRadius:'50%',background:SHIFT_COLORS[k]}}),
-                    e('span',{style:{fontSize:12,color:'#94a3b8'}},SHIFT_LABELS[k])
-                  ),
-                  e('span',{style:mn(11,SHIFT_COLORS[k],{fontWeight:600})},totals[k]+' ('+pct2+'%)')
-                ),
-                e('div',{style:{height:4,background:'#0f1520',borderRadius:2,overflow:'hidden'}},
-                  e('div',{style:{height:'100%',width:pct2+'%',background:SHIFT_COLORS[k],borderRadius:2,transition:'width 1s ease'}})
-                )
-              );
-            })
-          )
-    ),
-
-    // Summary strip
-    e('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:12}},
-      e('div',{style:{background:'#0a0e1a',border:'1px solid #151e30',borderRadius:12,padding:'14px 15px'}},
-        e('div',{style:mn(7,'#2d3748',{marginBottom:8,letterSpacing:'0.15em'})},'CURRENT STREAK'),
-        e('div',{style:{fontSize:28,fontWeight:700,color:'#f97316',fontFamily:"'DM Mono',monospace",lineHeight:1,marginBottom:4}},(state.streak||0)+'d'),
-        e('div',{style:mn(9,'#2d3748')},'consecutive active days')
-      ),
-      e('div',{style:{background:'#0a0e1a',border:'1px solid #151e30',borderRadius:12,padding:'14px 15px'}},
-        e('div',{style:mn(7,'#2d3748',{marginBottom:8,letterSpacing:'0.15em'})},'TASKS COMPLETED'),
-        e('div',{style:{fontSize:28,fontWeight:700,color:'#4a9eff',fontFamily:"'DM Mono',monospace",lineHeight:1,marginBottom:4}},(state.taskLog||[]).length+''),
-        e('div',{style:mn(9,'#2d3748')},'lifetime actions logged')
-      )
-    ),
-
-    // Recent transmissions
-    e('div',{style:card},
-      e('div',{style:cardH},e('span',{style:mn(9,'#94a3b8',{fontWeight:700})},'RECENT TRANSMISSIONS')),
-      log.length===0
-        ? e('div',{style:{padding:'24px',textAlign:'center',color:'#2d3748',fontFamily:"'DM Mono',monospace",fontSize:11}},'No transmissions yet.')
-        : e('div',{style:{padding:'8px 14px 12px'}},
-            log.slice(0,10).map(function(entry,i){
-              return e('div',{key:entry.id,style:{display:'flex',alignItems:'center',gap:10,padding:'9px 0',borderBottom:i<Math.min(log.length,10)-1?'1px solid #0a0d14':'none'}},
-                e('div',{style:{width:6,height:6,borderRadius:'50%',background:entry.action==='burn'?'#ef4444':'#4a9eff',flexShrink:0}}),
-                e('div',{style:mn(9,'#475569',{flexShrink:0,minWidth:52})},entry.time),
-                e('div',{style:{flex:1,minWidth:0}},
-                  e('div',{style:{fontSize:11,color:entry.shiftColor||'#94a3b8',fontFamily:"'DM Mono',monospace",fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},entry.shiftLabel||'Ambient'),
-                  e('div',{style:mn(8,'#2d3748')},entry.wordCount+' words · '+entry.action)
-                ),
-                e('span',{style:mn(10,'#4a9eff',{fontWeight:700,flexShrink:0})},'+'+entry.xp)
-              );
-            })
-          )
-    )
-  );
-}
+// ─── SIGNALS TAB → replaced by SkillTreeTab (imported above) ─────────────────
+// The SIGNALS route now renders SkillTreeTab from SkillTreeTab.js.
+// Signal data (weeklyShifts, log) remains in coreState — it is still written to
+// on every journal commit and can be surfaced again if needed.
 
 // ─── SHELL ────────────────────────────────────────────────────────────────────
 function Shell() {
@@ -836,7 +712,7 @@ function Shell() {
   if      (tab==='HOME')    pageContent=e(HomeTab,   {state:state,engine:engine,XPL:engine.XPL});
   else if (tab==='JOURNAL') pageContent=e(JournalTab,{state:state,engine:engine});
   else if (tab==='TASKS')   pageContent=e(TasksTab,  {state:state,engine:engine});
-  else                      pageContent=e(SignalsTab, {state:state,engine:engine});
+  else                      pageContent=e(SkillTreeTab,{state:state,engine:engine});
 
   return e('div',{style:{minHeight:'100vh',background:'#060910',color:'#e2e8f0',fontFamily:"'DM Sans',sans-serif"}},
     e('style',null,CSS),
