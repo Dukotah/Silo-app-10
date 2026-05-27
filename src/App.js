@@ -11,7 +11,9 @@ import {
   ACHIEVEMENTS, getTaskStreak, XPL,
 } from './useCoreEngine.js';
 import { parse } from './coreParser.js';
-import { SkillTreeTab } from './SkillTreeTab.js';
+import { ClarityTab } from './ClarityTab.js';
+import { useVIP, FREE_JOURNAL_LIMIT } from './useVIP.js';
+import { useClarity } from './useClarity.js';
 
 var e         = React.createElement;
 var useState  = React.useState;
@@ -24,7 +26,7 @@ function c2(test, a, b) { return test ? a : b; }
 var CSS =
   "@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600;700&display=swap');" +
   "*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}" +
-  "html,body,#root{height:100%;background:#060910}" +
+  "html,body,#root{height:100%;background:#0d1117}"+
   "body{overscroll-behavior:none;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}" +
   "::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:#1a2d4a;border-radius:2px}" +
   "textarea,input{outline:none}button{cursor:pointer;border:none;background:none;padding:0}" +
@@ -40,15 +42,15 @@ var CSS =
 // ─── STYLE HELPERS ────────────────────────────────────────────────────────────
 function mn(sz,cl,x) { return Object.assign({fontFamily:"'DM Mono',monospace",fontSize:sz,color:cl,letterSpacing:'0.08em'},x||{}); }
 function row(x)      { return Object.assign({display:'flex',alignItems:'center'},x||{}); }
-var card = { background:'#0a0e1a', border:'1px solid #151e30', borderRadius:16, overflow:'hidden', marginBottom:12 };
-var cardH = { display:'flex', alignItems:'center', justifyContent:'space-between', padding:'11px 15px', borderBottom:'1px solid #0f1520', background:'#080b12' };
+var card = { background:'#161b27', border:'1px solid #1d2740', borderRadius:16, overflow:'hidden', marginBottom:12 };
+var cardH = { display:'flex', alignItems:'center', justifyContent:'space-between', padding:'11px 15px', borderBottom:'1px solid #161f32', background:'#11151f' };
 
 // ─── TABS ─────────────────────────────────────────────────────────────────────
 var TABS = [
   { id:'HOME',    label:'Home',    glyph:'⬡' },
   { id:'JOURNAL', label:'Journal', glyph:'◎' },
   { id:'TASKS',   label:'Tasks',   glyph:'▪' },
-  { id:'SIGNALS', label:'Signals', glyph:'◇' },
+  { id:'SIGNALS', label:'Clarity', glyph:'◈' },
 ];
 
 // ─── STAT BAR ─────────────────────────────────────────────────────────────────
@@ -138,6 +140,63 @@ function AchievementToast(props) {
     e('div',{style:{fontSize:22,marginBottom:4}},d.icon),
     e('div',{style:{fontSize:13,fontWeight:700,color:'#e2e8f0',marginBottom:4}},d.title),
     e('div',{style:{fontSize:11,color:'#475569',lineHeight:1.5}},d.desc)
+  );
+}
+
+// ─── VIP MODAL ────────────────────────────────────────────────────────────────
+function VIPModal(props) {
+  if (!props.open) return null;
+  var onClose   = props.onClose;
+  var onUpgrade = props.onUpgrade;
+  var features  = [
+    { icon:'◎', label:'Unlimited Journal Entries', desc:'Free users capped at '+FREE_JOURNAL_LIMIT+' entries' },
+    { icon:'◈', label:'Sovereign Engine Generator', desc:'25 Clarity/s passive idle engine — highest yield' },
+    { icon:'◇', label:'Advanced Analytics',         desc:'Emotional trends, trigger maps, full signal history' },
+    { icon:'⬡', label:'Premium Visual Themes',      desc:'Exclusive color skins for the Core Entity + UI' },
+    { icon:'✦', label:'Journal 2× Boost Upgrade',   desc:'Manual journal entries trigger double passive rate' },
+  ];
+  return e('div', { onClick:onClose, style:{ position:'fixed', inset:0, zIndex:900, background:'rgba(0,0,0,0.92)', display:'flex', alignItems:'center', justifyContent:'center', padding:24 } },
+    e('div', { onClick:function(ev){ev.stopPropagation();}, style:{ width:'100%', maxWidth:420, animation:'scaleIn 0.35s cubic-bezier(0.34,1.56,0.64,1)' } },
+      // Card
+      e('div', { style:{ background:'linear-gradient(155deg,#160d22,#1a0e2e)', border:'1px solid #8b5cf666', borderRadius:20, padding:'22px 22px 26px', boxShadow:'0 0 60px rgba(139,92,246,0.2)' } },
+        // Header
+        e('div', { style:{ textAlign:'center', marginBottom:20 } },
+          e('div', { style:mn(9,'#8b5cf6',{ letterSpacing:'0.28em', marginBottom:8 }) }, '◈ VIP SELF-DEVELOPMENT EXPANSION'),
+          e('div', { style:{ fontSize:22, fontWeight:700, color:'#e2e8f0', fontFamily:"'DM Mono',monospace", lineHeight:1.2, marginBottom:6 } }, 'Unlock Full Protocol'),
+          e('div', { style:{ fontSize:12, color:'#556070', lineHeight:1.6 } }, 'Everything free users have, plus these exclusive features:')
+        ),
+        // Feature list
+        e('div', { style:{ display:'flex', flexDirection:'column', gap:8, marginBottom:20 } },
+          features.map(function(f) {
+            return e('div', { key:f.label, style:{ display:'flex', alignItems:'center', gap:12, padding:'9px 12px', background:'rgba(139,92,246,0.07)', border:'1px solid #8b5cf622', borderRadius:10 } },
+              e('span', { style:{ fontSize:16, flexShrink:0, color:'#8b5cf6' } }, f.icon),
+              e('div', null,
+                e('div', { style:{ fontSize:12, fontWeight:700, color:'#e2e8f0', marginBottom:2 } }, f.label),
+                e('div', { style:{ fontSize:10, color:'#556070' } }, f.desc)
+              )
+            );
+          })
+        ),
+        // CTA button
+        e('button', {
+          onClick:function(){ onUpgrade(); onClose(); },
+          style:{
+            width:'100%', padding:'14px',
+            background:'linear-gradient(135deg,#7c3aed,#8b5cf6)',
+            border:'none', borderRadius:12,
+            fontSize:12, color:'#fff',
+            fontFamily:"'DM Mono',monospace",
+            fontWeight:700, letterSpacing:'0.15em',
+            cursor:'pointer',
+            boxShadow:'0 0 24px rgba(139,92,246,0.4)',
+          },
+        }, '◈ ACTIVATE VIP — UNLOCK EVERYTHING'),
+        e('button', {
+          onClick:onClose,
+          style:{ display:'block', width:'100%', marginTop:10, background:'transparent', border:'none', fontSize:10, color:'#3d4d63', fontFamily:"'DM Mono',monospace", letterSpacing:'0.1em', cursor:'pointer' },
+        }, 'CONTINUE AS FREE USER')
+      )
+    )
   );
 }
 
@@ -446,6 +505,9 @@ function HomeTab(props) {
 // ─── JOURNAL TAB ──────────────────────────────────────────────────────────────
 function JournalTab(props) {
   var engine=props.engine, state=props.state;
+  var isVIP=props.isVIP||false;
+  var onNeedVIP=props.onNeedVIP||function(){};
+  var onJournalCommit=props.onJournalCommit||function(){};
   var s1=useState('');    var text=s1[0],setText=s1[1];
   var s2=useState(null);  var toast=s2[0],setToast=s2[1];
   var s3=useState(false); var burning=s3[0],setBurning=s3[1];
@@ -454,18 +516,33 @@ function JournalTab(props) {
   var timerRef=useRef(null), taRef=useRef(null);
   useEffect(function(){return function(){if(timerRef.current)clearTimeout(timerRef.current);};},[]);
   function showToast(r){if(timerRef.current)clearTimeout(timerRef.current);setToast(r);timerRef.current=setTimeout(function(){setToast(null);},3500);}
-  function doCommit(){if(!text.trim()||burning)return;var r=parse(text,'commit');engine.commitEntry(r);showToast(r);setText('');if(taRef.current)taRef.current.focus();}
+  var entries=state.journalEntries||[];
+  var atLimit=!isVIP && entries.length>=FREE_JOURNAL_LIMIT;
+  function doCommit(){
+    if(!text.trim()||burning)return;
+    if(atLimit){onNeedVIP();return;}
+    var r=parse(text,'commit');engine.commitEntry(r);onJournalCommit();showToast(r);setText('');if(taRef.current)taRef.current.focus();
+  }
   function doBurn(){if(!text.trim()||burning)return;var r=parse(text,'burn');setBurning(true);setTimeout(function(){engine.commitEntry(r);showToast(r);setText('');setBurning(false);if(taRef.current)taRef.current.focus();},720);}
   var hasText=text.trim().length>0, active=hasText&&!burning;
   var wc=hasText?text.trim().split(/\s+/).filter(function(w){return w.length>0;}).length:0;
   var SHIFT_COLORS={HEAVY:'#f97316',HEAT:'#ef4444',CLEAR:'#22c55e',REFLECTIVE:'#4a9eff'};
-  var entries=state.journalEntries||[];
   return e('div',{style:{animation:'fadeUp 0.35s ease'}},
     e('style',null,"@keyframes burnOut2{0%{opacity:1;transform:scale(1);filter:blur(0)}100%{opacity:0;transform:scale(0.95);filter:blur(6px)}}@keyframes burnGlow2{0%,100%{opacity:0}50%{opacity:1}}"),
+    atLimit && e('div',{style:{background:'#1a0d22',border:'1px solid #8b5cf655',borderRadius:10,padding:'10px 14px',marginBottom:10,display:'flex',alignItems:'center',justifyContent:'space-between'}},
+      e('div',null,
+        e('div',{style:mn(9,'#8b5cf6',{fontWeight:700,letterSpacing:'0.12em',marginBottom:2})},'◈ FREE JOURNAL LIMIT REACHED'),
+        e('div',{style:mn(8,'#556070')},'Upgrade to VIP for unlimited entries')
+      ),
+      e('button',{onClick:onNeedVIP,style:{padding:'7px 13px',background:'#8b5cf622',border:'1px solid #8b5cf666',borderRadius:8,fontSize:9,color:'#8b5cf6',fontFamily:"'DM Mono',monospace",fontWeight:700,letterSpacing:'0.1em',cursor:'pointer'}},'UPGRADE')
+    ),
     e('div',{style:card},
       e('div',{style:cardH},
         e('span',{style:mn(9,'#94a3b8',{fontWeight:700})},'VENT CANVAS'),
-        e('span',{style:mn(9,'#2d3748',{opacity:hasText?1:0,transition:'opacity 0.2s'})},wc+' WORDS')
+        e('div',{style:{display:'flex',alignItems:'center',gap:8}},
+          !isVIP && e('span',{style:{fontSize:9,fontFamily:"'DM Mono',monospace",color:atLimit?'#8b5cf6':'#3d4d63'}},(entries.length)+'/'+FREE_JOURNAL_LIMIT),
+          e('span',{style:mn(9,'#3d4d63',{opacity:hasText?1:0,transition:'opacity 0.2s'})},wc+' WORDS')
+        )
       ),
       e('div',{style:{position:'relative',animation:burning?'burnOut2 0.72s ease-out forwards':'none'}},
         e('div',{style:{position:'absolute',inset:0,zIndex:2,background:'linear-gradient(135deg,rgba(239,68,68,0.18),rgba(249,115,22,0.12))',pointerEvents:'none',opacity:burning?1:0,animation:burning?'burnGlow2 0.72s ease-out forwards':'none'}}),
@@ -480,9 +557,9 @@ function JournalTab(props) {
         )
       ),
       e('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:0,borderTop:'1px solid #0f1520'}},
-        e('button',{onClick:doCommit,disabled:!active,style:{padding:'14px 16px',background:active?'#0a1628':'#080b12',borderRight:'1px solid #0f1520',display:'flex',flexDirection:'column',alignItems:'flex-start',gap:3,transition:'all 0.15s',cursor:active?'pointer':'default',minHeight:52}},
-          e('span',{style:mn(10,active?'#4a9eff':'#1a2535',{fontWeight:700,letterSpacing:'0.15em'})},'◆ COMMIT'),
-          e('span',{style:mn(8,'#1e2a3a',{letterSpacing:'0.08em'})},'SAVE ANALYTICS · GRANT XP')
+        e('button',{onClick:doCommit,disabled:!active,style:{padding:'14px 16px',background:active?(atLimit?'#1a0d22':'#0a1628'):'#11151f',borderRight:'1px solid #161f32',display:'flex',flexDirection:'column',alignItems:'flex-start',gap:3,transition:'all 0.15s',cursor:active?'pointer':'default',minHeight:52}},
+          e('span',{style:mn(10,active?(atLimit?'#8b5cf6':'#4a9eff'):'#1a2535',{fontWeight:700,letterSpacing:'0.15em'})},atLimit?'◈ VIP REQUIRED':'◆ COMMIT'),
+          e('span',{style:mn(8,'#2a3750',{letterSpacing:'0.08em'})},atLimit?'UPGRADE TO ADD MORE ENTRIES':'SAVE ANALYTICS · GRANT XP')
         ),
         e('button',{onClick:doBurn,disabled:!active,style:{padding:'14px 16px',background:active?'#150806':'#080b12',display:'flex',flexDirection:'column',alignItems:'flex-start',gap:3,transition:'all 0.15s',cursor:active?'pointer':'default',minHeight:52}},
           e('span',{style:mn(10,active?'#ef4444':'#1a2535',{fontWeight:700,letterSpacing:'0.15em'})},'◈ BURN & PURGE'),
@@ -683,8 +760,11 @@ function LineChart30(props) {
 // ─── SHELL ────────────────────────────────────────────────────────────────────
 function Shell() {
   var engine=useCoreEngine();
-  var s1=useState('HOME'); var tab=s1[0],setTab=s1[1];
-  var s2=useState(false);  var offline=s2[0],setOffline=s2[1];
+  var vip=useVIP();
+  var s1=useState('HOME');  var tab=s1[0],setTab=s1[1];
+  var s2=useState(false);   var offline=s2[0],setOffline=s2[1];
+  var s3=useState(false);   var showVIP=s3[0],setShowVIP=s3[1];
+  var clarity=useClarity(engine.state, vip.isVIP);
 
   useEffect(function(){
     function goOff(){setOffline(true);}
@@ -701,7 +781,7 @@ function Shell() {
   var xp=state?(state.totalXP||0):0;
 
   if (!loaded) {
-    return e('div',{style:{minHeight:'100vh',background:'#060910',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:16}},
+    return e('div',{style:{minHeight:'100vh',background:'#0d1117',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:16}},
       e('style',null,CSS),
       e('div',{style:{width:10,height:10,borderRadius:'50%',background:'#4a9eff',animation:'pulse 1s ease-in-out infinite'}}),
       e('div',{style:mn(9,'#2d3748',{letterSpacing:'0.2em',marginTop:8})},'CORE INITIALIZING')
@@ -709,38 +789,40 @@ function Shell() {
   }
 
   var pageContent;
-  if      (tab==='HOME')    pageContent=e(HomeTab,   {state:state,engine:engine,XPL:engine.XPL});
-  else if (tab==='JOURNAL') pageContent=e(JournalTab,{state:state,engine:engine});
-  else if (tab==='TASKS')   pageContent=e(TasksTab,  {state:state,engine:engine});
-  else                      pageContent=e(SkillTreeTab,{state:state,engine:engine});
+  if      (tab==='HOME')    pageContent=e(HomeTab,    {state:state,engine:engine,XPL:engine.XPL});
+  else if (tab==='JOURNAL') pageContent=e(JournalTab, {state:state,engine:engine,isVIP:vip.isVIP,onNeedVIP:function(){setShowVIP(true);},onJournalCommit:clarity.activateJournalBoost});
+  else if (tab==='TASKS')   pageContent=e(TasksTab,   {state:state,engine:engine});
+  else                      pageContent=e(ClarityTab, {state:state,engine:engine,clarity:clarity,isVIP:vip.isVIP,onNeedVIP:function(){setShowVIP(true);}});
 
-  return e('div',{style:{minHeight:'100vh',background:'#060910',color:'#e2e8f0',fontFamily:"'DM Sans',sans-serif"}},
+  return e('div',{style:{minHeight:'100vh',background:'#0d1117',color:'#e2e8f0',fontFamily:"'DM Sans',sans-serif"}},
     e('style',null,CSS),
+    e(VIPModal,{open:showVIP,onClose:function(){setShowVIP(false);},onUpgrade:vip.upgrade}),
     e(EvolveModal,{tier:engine.evolution,onClose:engine.dismissEvolution}),
     e(AchievementToast,{data:engine.newAchievement,onClose:engine.dismissAchievement}),
 
     // Offline banner
     cond(offline,
-      e('div',{style:{background:'#0a0e1a',borderBottom:'1px solid #0f1520',padding:'5px 20px',textAlign:'center',fontFamily:"'DM Mono',monospace",fontSize:9,color:'#475569',letterSpacing:'0.12em'}},'OFFLINE — ALL DATA LOCAL')
+      e('div',{style:{background:'#161b27',borderBottom:'1px solid #1d2740',padding:'5px 20px',textAlign:'center',fontFamily:"'DM Mono',monospace",fontSize:9,color:'#475569',letterSpacing:'0.12em'}},'OFFLINE — ALL DATA LOCAL')
     ),
 
     // Header
-    e('header',{style:{position:'sticky',top:0,zIndex:100,background:'rgba(6,9,16,0.95)',backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)',borderBottom:'1px solid #0f1520'}},
+    e('header',{style:{position:'sticky',top:0,zIndex:100,background:'rgba(13,17,23,0.96)',backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)',borderBottom:'1px solid #1d2740'}},
       e('div',{style:{maxWidth:680,margin:'0 auto',padding:'0 16px',height:52,display:'flex',alignItems:'center',justifyContent:'space-between'}},
         e('div',{style:row({gap:9})},
           e('div',{style:{width:26,height:26,background:'rgba(74,158,255,0.07)',border:'1px solid '+tier.color+'33',borderRadius:7,display:'flex',alignItems:'center',justifyContent:'center'}},
             e('div',{style:{width:6,height:6,borderRadius:'50%',background:tier.color,animation:'pulse 2s ease-in-out infinite'}})
           ),
-          e('span',{style:mn(14,'#e2e8f0',{fontWeight:700,letterSpacing:'0.18em'})},'SILO')
+          e('span',{style:mn(14,'#e2e8f0',{fontWeight:700,letterSpacing:'0.18em'})},'SILO'),
+          vip.isVIP && e('span',{style:{fontSize:8,fontFamily:"'DM Mono',monospace",color:'#8b5cf6',fontWeight:700,letterSpacing:'0.15em',marginLeft:4}},'VIP')
         ),
         e('div',{style:row({gap:8})},
           e('div',{style:{padding:'4px 10px',background:'rgba(74,158,255,0.06)',border:'1px solid #1e3a5f',borderRadius:7}},
             e('span',{style:mn(10,'#4a9eff',{fontWeight:600})},xp+' XP')
           ),
-          e('div',{style:{padding:'4px 10px',background:'#080b12',border:'1px solid #0f1520',borderRadius:7}},
+          e('div',{style:{padding:'4px 10px',background:'#11151f',border:'1px solid #1d2740',borderRadius:7}},
             e('span',{style:mn(10,tier.color,{fontWeight:600})},'LV.'+level)
           ),
-          e('button',{onClick:function(){if(window.confirm('Reset all SILO data? This cannot be undone.'))engine.resetAll();},style:{width:30,height:30,background:'#080b12',border:'1px solid #0f1520',borderRadius:7,display:'flex',alignItems:'center',justifyContent:'center',color:'#2d3748',fontSize:13,minWidth:30}},'⚙')
+          e('button',{onClick:function(){if(window.confirm('Reset all SILO data? This cannot be undone.'))engine.resetAll();},style:{width:30,height:30,background:'#11151f',border:'1px solid #1d2740',borderRadius:7,display:'flex',alignItems:'center',justifyContent:'center',color:'#2d3748',fontSize:13,minWidth:30}},'\u2699')
         )
       )
     ),
@@ -748,7 +830,7 @@ function Shell() {
     // Content
     e('div',{style:{maxWidth:680,margin:'0 auto',padding:'0 16px 100px'}},
       // Tab nav
-      e('nav',{style:{display:'flex',gap:2,margin:'12px 0 18px',background:'#0a0e1a',border:'1px solid #151e30',borderRadius:12,padding:3}},
+      e('nav',{style:{display:'flex',gap:2,margin:'12px 0 18px',background:'#161b27',border:'1px solid #1d2740',borderRadius:12,padding:3}},
         TABS.map(function(tb){
           var on=tab===tb.id;
           return e('button',{key:tb.id,onClick:function(){setTab(tb.id);},style:{flex:1,padding:'9px 4px',background:on?'#0a1628':'transparent',border:'1px solid '+(on?'#1e3a5f':'transparent'),borderRadius:10,fontSize:8,fontWeight:on?700:400,color:on?'#4a9eff':'#2d3748',letterSpacing:'0.1em',fontFamily:"'DM Mono',monospace",display:'flex',flexDirection:'column',alignItems:'center',gap:3,cursor:'pointer',transition:'all 0.2s',minHeight:44}},
@@ -758,11 +840,11 @@ function Shell() {
         })
       ),
       pageContent,
-      e('div',{style:{marginTop:20,textAlign:'center',fontFamily:"'DM Mono',monospace",fontSize:8,color:'#151e30',letterSpacing:'0.12em'}},'SILO v10 · PRIVATE · ZERO-KNOWLEDGE · ALL DATA LOCAL')
+      e('div',{style:{marginTop:20,textAlign:'center',fontFamily:"'DM Mono',monospace",fontSize:8,color:'#1d2740',letterSpacing:'0.12em'}},'SILO v10 \u00B7 PRIVATE \u00B7 ZERO-KNOWLEDGE \u00B7 ALL DATA LOCAL')
     ),
 
     // Fixed bottom nav
-    e('nav',{style:{position:'fixed',bottom:0,left:0,right:0,zIndex:200,background:'rgba(6,9,16,0.96)',borderTop:'1px solid #0f1520',backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',paddingBottom:'env(safe-area-inset-bottom,0px)'}},
+    e('nav',{style:{position:'fixed',bottom:0,left:0,right:0,zIndex:200,background:'rgba(13,17,23,0.97)',borderTop:'1px solid #1d2740',backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',paddingBottom:'env(safe-area-inset-bottom,0px)'}},
       e('div',{style:{maxWidth:680,margin:'0 auto',display:'flex',padding:'8px 8px 10px'}},
         TABS.map(function(tb){
           var on=tab===tb.id;
