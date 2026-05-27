@@ -941,10 +941,14 @@ function Shell() {
     ),
 
     // Floating SOS button
-    e('button',{onClick:openUrge,title:'Urge Rescue Emergency Protocol',style:{position:'fixed',bottom:78,right:16,zIndex:150,width:44,height:44,borderRadius:'50%',background:'rgba(239,68,68,0.12)',border:'1px solid rgba(239,68,68,0.35)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,color:'#ef4444',cursor:'pointer',backdropFilter:'blur(8px)',WebkitBackdropFilter:'blur(8px)',boxShadow:'0 0 16px rgba(239,68,68,0.15)',transition:'all 0.2s'},
-      onMouseEnter:function(ev){ev.currentTarget.style.background='rgba(239,68,68,0.2)';ev.currentTarget.style.boxShadow='0 0 24px rgba(239,68,68,0.3)';},
-      onMouseLeave:function(ev){ev.currentTarget.style.background='rgba(239,68,68,0.12)';ev.currentTarget.style.boxShadow='0 0 16px rgba(239,68,68,0.15)';}
-    },'\U0001f198'),
+    e('button',{onClick:openUrge,title:'Urge Rescue — Emergency Protocol',style:{position:'fixed',bottom:82,right:14,zIndex:150,width:46,height:46,borderRadius:'50%',background:'rgba(13,17,23,0.92)',border:'1.5px solid rgba(239,68,68,0.5)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:1,cursor:'pointer',backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)',boxShadow:'0 0 0 0 rgba(239,68,68,0.4)',animation:'sos-pulse 2.8s ease-in-out infinite',transition:'border-color 0.2s,box-shadow 0.2s'},
+      onMouseEnter:function(ev){ev.currentTarget.style.borderColor='rgba(239,68,68,0.9)';ev.currentTarget.style.boxShadow='0 0 18px rgba(239,68,68,0.4)';},
+      onMouseLeave:function(ev){ev.currentTarget.style.borderColor='rgba(239,68,68,0.5)';ev.currentTarget.style.boxShadow='0 0 0 0 rgba(239,68,68,0.4)';}
+    },
+      e('style',null,'@keyframes sos-pulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.35)}60%{box-shadow:0 0 0 6px rgba(239,68,68,0)}}'),
+      e('div',{style:{width:6,height:6,borderRadius:'50%',background:'#ef4444',boxShadow:'0 0 6px rgba(239,68,68,0.8)',animation:'pulse 1.4s ease-in-out infinite'}}),
+      e('span',{style:{fontSize:7,fontWeight:700,color:'#ef4444',fontFamily:"'DM Mono',monospace",letterSpacing:'0.12em',lineHeight:1}},'SOS')
+    ),
 
     // Fixed bottom nav
     e('nav',{style:{position:'fixed',bottom:0,left:0,right:0,zIndex:200,background:'rgba(13,17,23,0.97)',borderTop:'1px solid #1d2740',backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',paddingBottom:'env(safe-area-inset-bottom,0px)'}},
