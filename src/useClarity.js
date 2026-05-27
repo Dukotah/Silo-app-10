@@ -21,15 +21,18 @@ var OFFLINE_CAP = 14400; // 4-hour cap on offline credit (in seconds)
 
 // --- GENERATOR CATALOGUE -----------------------------------------------------
 export var GENERATORS = [
-  { id:'focus',    name:'Focus Drone',      desc:'A quiet anchor. Generates minimal baseline clarity.', icon:'◇', rate:0.1,  baseCost:10,   costMult:1.15, maxCount:50, milestoneStreak:0,  vip:false, color:'#4a9eff' },
-  { id:'signal',   name:'Signal Node',      desc:'Amplifies passive clarity. Requires a 3-day streak.', icon:'◆', rate:0.5,  baseCost:50,   costMult:1.15, maxCount:30, milestoneStreak:3,  vip:false, color:'#22c55e' },
-  { id:'resonance',name:'Resonance Core',   desc:'Deep attunement. Requires one full week of presence.',icon:'◉', rate:2.0,  baseCost:200,  costMult:1.18, maxCount:20, milestoneStreak:7,  vip:false, color:'#8b5cf6' },
-  { id:'cascade',  name:'Cascade Matrix',   desc:'Self-amplifying thought cycles. Requires a 14-day streak.', icon:'⬡', rate:8.0, baseCost:800, costMult:1.20, maxCount:10, milestoneStreak:14, vip:false, color:'#f59e0b' },
-  { id:'sovereign',name:'Sovereign Engine', desc:'VIP Exclusive. Autonomous high-yield clarity synthesis.', icon:'◈', rate:25.0,baseCost:2500, costMult:1.25, maxCount:5,  milestoneStreak:30, vip:true,  color:'#e879a0' },
+  { id:'focus',    name:'Focus Drone',      desc:'A quiet anchor. Generates minimal baseline clarity.',             icon:'◇', rate:0.1,  baseCost:10,   costMult:1.15, maxCount:50, milestoneStreak:0,  vip:false, color:'#4a9eff' },
+  { id:'spark',    name:'Clarity Spark',    desc:'A small but steady flicker of self-awareness.',                  icon:'◈', rate:0.25, baseCost:25,   costMult:1.15, maxCount:40, milestoneStreak:0,  vip:false, color:'#06b6d4' },
+  { id:'signal',   name:'Signal Node',      desc:'Amplifies passive clarity. Requires a 3-day streak.',            icon:'◆', rate:0.5,  baseCost:50,   costMult:1.15, maxCount:30, milestoneStreak:3,  vip:false, color:'#22c55e' },
+  { id:'weaver',   name:'Thought Weaver',   desc:'Patterns emerging from the noise. Requires a 5-day streak.',    icon:'◉', rate:1.0,  baseCost:100,  costMult:1.17, maxCount:25, milestoneStreak:5,  vip:false, color:'#a78bfa' },
+  { id:'resonance',name:'Resonance Core',   desc:'Deep attunement. Requires one full week of presence.',          icon:'◉', rate:2.0,  baseCost:200,  costMult:1.18, maxCount:20, milestoneStreak:7,  vip:false, color:'#8b5cf6' },
+  { id:'pulse',    name:'Pulse Array',      desc:'Synchronized thought cycles. Requires a 10-day streak.',        icon:'⬡', rate:4.0,  baseCost:400,  costMult:1.19, maxCount:15, milestoneStreak:10, vip:false, color:'#fb923c' },
+  { id:'cascade',  name:'Cascade Matrix',   desc:'Self-amplifying feedback loops. Requires a 14-day streak.',     icon:'⬡', rate:8.0,  baseCost:800,  costMult:1.20, maxCount:10, milestoneStreak:14, vip:false, color:'#f59e0b' },
+  { id:'lattice',  name:'Void Lattice',     desc:'Deep subconscious rewiring. Requires a 21-day streak.',         icon:'◈', rate:15.0, baseCost:1500, costMult:1.22, maxCount:8,  milestoneStreak:21, vip:false, color:'#e11d48' },
+  { id:'sovereign',name:'Sovereign Engine', desc:'VIP Exclusive. Autonomous high-yield clarity synthesis.',       icon:'◈', rate:25.0, baseCost:2500, costMult:1.25, maxCount:5,  milestoneStreak:30, vip:true,  color:'#e879a0' },
 ];
 
 // --- TAP UPGRADES ------------------------------------------------------------
-// Permanent flat bonuses to tap power. Purchased in order (level N before N+1).
 export var TAP_UPGRADES = [
   { level:1, cost:25,   tapBonus:1,  name:'Focus Spike',     icon:'▸', desc:'+1 Clarity per tap' },
   { level:2, cost:100,  tapBonus:3,  name:'Signal Burst',    icon:'▸▸',desc:'+3 Clarity per tap' },
@@ -39,7 +42,6 @@ export var TAP_UPGRADES = [
 ];
 
 // --- SHOP ITEMS --------------------------------------------------------------
-// Stackable permanent passive rate multipliers. No streak requirement.
 export var SHOP_ITEMS = [
   { id:'condenser', name:'Mind Condenser',   icon:'◇', cost:20,   maxCount:10, passiveBonus:0.05, color:'#4a9eff', desc:'All generators +5% rate. Stackable up to 10x.' },
   { id:'amplifier', name:'Signal Amplifier', icon:'◉', cost:200,  maxCount:5,  passiveBonus:0.20, color:'#22c55e', desc:'All generators +20% rate. Stackable up to 5x.' },
@@ -78,7 +80,7 @@ function defaultState() {
   return {
     clarity: 0,
     totalEarned: 0,
-    counts: { focus:0, signal:0, resonance:0, cascade:0, sovereign:0 },
+    counts: { focus:0, spark:0, signal:0, weaver:0, resonance:0, pulse:0, cascade:0, lattice:0, sovereign:0 },
     tapLevel: 0,
     shopCounts: { condenser:0, amplifier:0, prism:0, nexus:0 },
     journalBoostEnd: 0,
@@ -108,7 +110,6 @@ function saveState(st) {
 export function useClarity(coreState, isVIP) {
   var streak = (coreState && coreState.streak) || 0;
 
-  // Init state — apply offline progression immediately
   var s1 = useState(function() {
     var st = loadState();
     var now = Date.now();
@@ -130,7 +131,6 @@ export function useClarity(coreState, isVIP) {
   });
   var clState = s1[0], setClState = s1[1];
 
-  // Persist on change (debounced 2s)
   var saveRef = useRef(null);
   useEffect(function() {
     if (saveRef.current) clearTimeout(saveRef.current);
@@ -138,7 +138,6 @@ export function useClarity(coreState, isVIP) {
     return function() { if (saveRef.current) clearTimeout(saveRef.current); };
   }, [clState]);
 
-  // 1-second passive tick
   useEffect(function() {
     var tick = setInterval(function() {
       setClState(function(prev) {
@@ -155,21 +154,16 @@ export function useClarity(coreState, isVIP) {
     return function() { clearInterval(tick); };
   }, []);
 
-  // Derived values
   var boosted       = Date.now() < (clState.journalBoostEnd || 0);
   var shopMult      = calcShopMult(clState.shopCounts);
   var passiveRate   = calcPassiveRate(clState.counts, boosted, shopMult);
   var tapBonusTotal = TAP_UPGRADES.slice(0, clState.tapLevel || 0).reduce(function(s,u){return s+u.tapBonus;},0);
   var tapPower      = Math.max(1, streak) + tapBonusTotal;
 
-  // -- ACTIONS ----------------------------------------------------------------
   function tap() {
     var earned = tapPower;
     setClState(function(prev) {
-      return Object.assign({}, prev, {
-        clarity:     prev.clarity + earned,
-        totalEarned: prev.totalEarned + earned,
-      });
+      return Object.assign({}, prev, { clarity:prev.clarity+earned, totalEarned:prev.totalEarned+earned });
     });
   }
 
@@ -185,7 +179,7 @@ export function useClarity(coreState, isVIP) {
     setClState(function(prev) {
       var newCounts = Object.assign({}, prev.counts);
       newCounts[genId] = (prev.counts[genId] || 0) + 1;
-      return Object.assign({}, prev, { clarity: prev.clarity - cost, counts: newCounts });
+      return Object.assign({}, prev, { clarity:prev.clarity-cost, counts:newCounts });
     });
     return true;
   }
@@ -196,7 +190,7 @@ export function useClarity(coreState, isVIP) {
     if (!upg) return false;
     if (clState.clarity < upg.cost) return false;
     setClState(function(prev) {
-      return Object.assign({}, prev, { clarity: prev.clarity - upg.cost, tapLevel: nextLevel });
+      return Object.assign({}, prev, { clarity:prev.clarity-upg.cost, tapLevel:nextLevel });
     });
     return true;
   }
@@ -205,25 +199,25 @@ export function useClarity(coreState, isVIP) {
     var item = SHOP_ITEMS.find(function(i){ return i.id === itemId; });
     if (!item) return false;
     var owned = (clState.shopCounts && clState.shopCounts[itemId]) || 0;
-    if (owned >= item.maxCount)     return false;
+    if (owned >= item.maxCount)      return false;
     if (clState.clarity < item.cost) return false;
     setClState(function(prev) {
       var newShop = Object.assign({}, prev.shopCounts);
       newShop[itemId] = (newShop[itemId] || 0) + 1;
-      return Object.assign({}, prev, { clarity: prev.clarity - item.cost, shopCounts: newShop });
+      return Object.assign({}, prev, { clarity:prev.clarity-item.cost, shopCounts:newShop });
     });
     return true;
   }
 
   function activateJournalBoost() {
     setClState(function(prev) {
-      return Object.assign({}, prev, { journalBoostEnd: Date.now() + 24 * 60 * 60 * 1000 });
+      return Object.assign({}, prev, { journalBoostEnd: Date.now() + 24*60*60*1000 });
     });
   }
 
   function dismissOffline() {
     setClState(function(prev) {
-      return Object.assign({}, prev, { offlineEarned: 0, offlineSeconds: 0 });
+      return Object.assign({}, prev, { offlineEarned:0, offlineSeconds:0 });
     });
   }
 
