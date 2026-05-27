@@ -391,6 +391,8 @@ function TaskItem(props) {
 // ─── HOME TAB ─────────────────────────────────────────────────────────────────
 function HomeTab(props) {
   var s=props.state, engine=props.engine;
+  var isVIP=props.isVIP||false;
+  var onNeedVIP=props.onNeedVIP||function(){};
   var level=getLevelFromXP(s.totalXP||0), lvlXP=getLvlXP(s.totalXP||0);
   var pct=Math.round((lvlXP/props.XPL)*100), tier=getTier(level);
   var taskLog=s.taskLog||[];
@@ -426,10 +428,15 @@ function HomeTab(props) {
             ),
             e('div',{style:mn(8,'#2d3748',{marginTop:3})},level<24?(props.XPL-lvlXP)+' XP to next level':'MAXIMUM FORM')
           ),
-          e('div',{style:row({gap:8})},
-            e(StatBar,{label:'BODY',val:stats.body,max:mx,color:'#22c55e'}),
-            e(StatBar,{label:'MIND',val:stats.mind,max:mx,color:'#4a9eff'}),
-            e(StatBar,{label:'SOUL',val:stats.soul,max:mx,color:'#f97316'})
+          e('div',{style:{position:'relative'}},
+            e('div',{style:{display:'flex',gap:8,filter:isVIP?'none':'blur(4px)',userSelect:isVIP?'auto':'none',pointerEvents:isVIP?'auto':'none',transition:'filter 0.3s'}},
+              e(StatBar,{label:'BODY',val:stats.body,max:mx,color:'#22c55e'}),
+              e(StatBar,{label:'MIND',val:stats.mind,max:mx,color:'#4a9eff'}),
+              e(StatBar,{label:'SOUL',val:stats.soul,max:mx,color:'#f97316'})
+            ),
+            !isVIP && e('div',{onClick:onNeedVIP,style:{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}},
+              e('div',{style:{padding:'4px 10px',background:'rgba(139,92,246,0.15)',border:'1px solid #8b5cf655',borderRadius:8,fontSize:9,color:'#8b5cf6',fontFamily:"'DM Mono',monospace",fontWeight:700,letterSpacing:'0.1em'}},'◈ VIP — UNLOCK ANALYTICS')
+            )
           )
         )
       )
@@ -502,6 +509,18 @@ function HomeTab(props) {
   );
 }
 
+// ─── JOURNAL VALIDATION ───────────────────────────────────────────────────────
+function validateJournalEntry(text) {
+  var t=text.trim();
+  if(t.length<150) return {valid:false,reason:'Need at least 150 characters ('+t.length+'/150).'};
+  var words=t.split(/\s+/).filter(function(w){return w.length>0;});
+  if(words.length<20) return {valid:false,reason:'Need at least 20 words ('+words.length+'/20).'};
+  if(/(.)\1{4,}/i.test(t)) return {valid:false,reason:'Pattern detected — please write authentically.'};
+  var uc={};for(var ci=0;ci<t.length;ci++)uc[t[ci].toLowerCase()]=1;
+  if(Object.keys(uc).length<8) return {valid:false,reason:'Low diversity detected — write something real.'};
+  return {valid:true,reason:''};
+}
+
 // ─── JOURNAL TAB ──────────────────────────────────────────────────────────────
 function JournalTab(props) {
   var engine=props.engine, state=props.state;
@@ -513,6 +532,7 @@ function JournalTab(props) {
   var s3=useState(false); var burning=s3[0],setBurning=s3[1];
   var s4=useState(false); var focused=s4[0],setFocused=s4[1];
   var s5=useState(null);  var expanded=s5[0],setExpanded=s5[1];
+  var s6=useState(null);  var warnMsg=s6[0],setWarnMsg=s6[1];
   var timerRef=useRef(null), taRef=useRef(null);
   useEffect(function(){return function(){if(timerRef.current)clearTimeout(timerRef.current);};},[]);
   function showToast(r){if(timerRef.current)clearTimeout(timerRef.current);setToast(r);timerRef.current=setTimeout(function(){setToast(null);},3500);}
@@ -521,6 +541,9 @@ function JournalTab(props) {
   function doCommit(){
     if(!text.trim()||burning)return;
     if(atLimit){onNeedVIP();return;}
+    var v=validateJournalEntry(text);
+    if(!v.valid){setWarnMsg(v.reason);setTimeout(function(){setWarnMsg(null);},4500);return;}
+    setWarnMsg(null);
     var r=parse(text,'commit');engine.commitEntry(r);onJournalCommit();showToast(r);setText('');if(taRef.current)taRef.current.focus();
   }
   function doBurn(){if(!text.trim()||burning)return;var r=parse(text,'burn');setBurning(true);setTimeout(function(){engine.commitEntry(r);showToast(r);setText('');setBurning(false);if(taRef.current)taRef.current.focus();},720);}
@@ -551,6 +574,11 @@ function JournalTab(props) {
           placeholder:'Begin transmission. Write anything — this space is entirely private and local.\nCommit to save analytics. Burn to vaporize completely.',
           style:{position:'relative',zIndex:1,width:'100%',minHeight:180,padding:'16px 18px',background:'transparent',border:'none',resize:'none',outline:'none',fontSize:14,color:'#e2e8f0',fontFamily:"'DM Sans',sans-serif",lineHeight:1.8,boxSizing:'border-box',caretColor:'#4a9eff',borderLeft:focused?'2px solid #1e3a5f':'2px solid transparent',transition:'border-left-color 0.2s'}
         }),
+        cond(warnMsg,
+          e('div',{style:{margin:'0 16px 8px',padding:'8px 12px',background:'rgba(239,68,68,0.07)',border:'1px solid rgba(239,68,68,0.25)',borderRadius:8,fontSize:10,color:'#ef4444',fontFamily:"'DM Mono',monospace",letterSpacing:'0.06em',lineHeight:1.4}},
+            '⚠ '+warnMsg
+          )
+        ),
         e('div',{style:{padding:'6px 18px 12px',display:'flex',justifyContent:'space-between',alignItems:'center'}},
           e('span',{style:mn(8,'#1e2a3a')},text.length+' CHARS · CTRL+ENTER TO COMMIT'),
           null
@@ -752,10 +780,74 @@ function LineChart30(props) {
   );
 }
 
-// ─── SIGNALS TAB → replaced by SkillTreeTab (imported above) ─────────────────
-// The SIGNALS route now renders SkillTreeTab from SkillTreeTab.js.
-// Signal data (weeklyShifts, log) remains in coreState — it is still written to
-// on every journal commit and can be surfaced again if needed.
+// ─── SIGNALS TAB → replaced by ClarityTab ────────────────────────────────────
+
+// ─── URGE RESCUE MODAL ────────────────────────────────────────────────────────
+var URGE_KEY='silo_urge_v1';
+function getUrgeLastUsed(){try{return parseInt(localStorage.getItem(URGE_KEY)||'0',10);}catch(x){return 0;}}
+function setUrgeLastUsed(){try{localStorage.setItem(URGE_KEY,String(Date.now()));}catch(x){}}
+
+function UrgeModal(props) {
+  var isVIP=props.isVIP||false;
+  var onClose=props.onClose||function(){};
+  var canUse=props.canUse||false;
+  var s1=useState(0);     var phase=s1[0],setPhase=s1[1];
+  var s2=useState(false); var started=s2[0],setStarted=s2[1];
+  var s3=useState(0);     var elapsed=s3[0],setElapsed=s3[1];
+  var tickRef=useRef(null);
+  var PHASES=['INHALE','HOLD','EXHALE','HOLD'];
+  var SECS=[4,4,4,4];
+  var PCOLORS=['#4a9eff','#8b5cf6','#22c55e','#8b5cf6'];
+  useEffect(function(){
+    if(!started){if(tickRef.current)clearInterval(tickRef.current);return;}
+    tickRef.current=setInterval(function(){
+      setElapsed(function(prev){
+        if(prev+1>=SECS[phase]){setPhase(function(p){return (p+1)%4;});return 0;}
+        return prev+1;
+      });
+    },1000);
+    return function(){if(tickRef.current)clearInterval(tickRef.current);};
+  },[started,phase]);
+  if(!props.open)return null;
+  var pColor=PCOLORS[phase], pLabel=PHASES[phase], pSec=SECS[phase];
+  var circ=Math.PI*2*60, pct=elapsed/pSec;
+  var GROUNDS=['Name 5 things you can see.','Name 4 things you can touch.','Name 3 things you can hear.','Name 2 things you can smell.','Name 1 thing you can taste.'];
+  return e('div',{onClick:onClose,style:{position:'fixed',inset:0,zIndex:950,background:'rgba(0,0,0,0.96)',display:'flex',alignItems:'center',justifyContent:'center',padding:24}},
+    e('div',{onClick:function(ev){ev.stopPropagation();},style:{width:'100%',maxWidth:360,textAlign:'center'}},
+      e('div',{style:mn(9,'#4a9eff',{letterSpacing:'0.28em',marginBottom:6})},'◈ URGE RESCUE'),
+      e('div',{style:{fontSize:16,fontWeight:700,color:'#e2e8f0',marginBottom:4,fontFamily:"'DM Mono',monospace"}},'Emergency Protocol'),
+      !canUse
+        ? e('div',{style:{background:'#1a0d22',border:'1px solid #8b5cf655',borderRadius:14,padding:'22px',margin:'20px 0'}},
+            e('div',{style:{fontSize:13,color:'#8b5cf6',fontWeight:700,fontFamily:"'DM Mono',monospace",marginBottom:8}},'24h Limit Reached'),
+            e('div',{style:{fontSize:11,color:'#556070',lineHeight:1.6,marginBottom:14}},'Free users get 1 emergency use every 24 hours. Upgrade for unlimited access.'),
+            e('button',{onClick:props.onNeedVIP,style:{padding:'10px 22px',background:'#8b5cf622',border:'1px solid #8b5cf666',borderRadius:10,fontSize:10,color:'#8b5cf6',fontFamily:"'DM Mono',monospace",fontWeight:700,letterSpacing:'0.1em',cursor:'pointer'}},'UPGRADE TO VIP')
+          )
+        : e('div',null,
+            e('div',{style:{position:'relative',width:148,height:148,margin:'20px auto',display:'flex',alignItems:'center',justifyContent:'center'}},
+              e('svg',{viewBox:'0 0 148 148',style:{position:'absolute',inset:0,width:'100%',height:'100%',transform:'rotate(-90deg)'}},
+                e('circle',{cx:'74',cy:'74',r:'60',fill:'none',stroke:'#0f1520',strokeWidth:'8'}),
+                e('circle',{cx:'74',cy:'74',r:'60',fill:'none',stroke:pColor,strokeWidth:'8',strokeDasharray:circ.toFixed(1),strokeDashoffset:(circ*(1-pct)).toFixed(1),strokeLinecap:'round',style:{transition:'stroke-dashoffset 0.95s linear,stroke 0.4s ease'}})
+              ),
+              e('div',{style:{textAlign:'center',zIndex:1}},
+                started
+                  ? e('div',null,e('div',{style:mn(18,pColor,{fontWeight:700,display:'block'})},pLabel),e('div',{style:mn(12,'#475569',{marginTop:3})},(pSec-elapsed)+'s'))
+                  : e('div',{style:mn(10,'#2d3748')},'TAP START')
+              )
+            ),
+            !started && e('button',{
+              onClick:function(){setStarted(true);setUrgeLastUsed();props.onMarkUsed&&props.onMarkUsed();},
+              style:{padding:'13px 30px',background:'rgba(74,158,255,0.08)',border:'1px solid #4a9eff44',borderRadius:12,fontSize:11,color:'#4a9eff',fontFamily:"'DM Mono',monospace",fontWeight:700,letterSpacing:'0.15em',cursor:'pointer',marginBottom:16}
+            },'BEGIN BREATHING'),
+            isVIP && e('div',{style:{fontSize:9,color:'#8b5cf6',fontFamily:"'DM Mono',monospace",letterSpacing:'0.1em',marginBottom:12}},'◈ VIP — UNLIMITED ACCESS'),
+            e('div',{style:{background:'#0a0e1a',border:'1px solid #1d2740',borderRadius:12,padding:'13px 15px',textAlign:'left',marginTop:4}},
+              e('div',{style:mn(8,'#2d3748',{marginBottom:8,letterSpacing:'0.15em'})},'5-4-3-2-1 GROUNDING'),
+              GROUNDS.map(function(g,gi){return e('div',{key:gi,style:{fontSize:11,color:'#2d3748',padding:'5px 0',borderBottom:gi<4?'1px solid #0a0d14':'none'}},g);})
+            )
+          ),
+      e('button',{onClick:onClose,style:{display:'block',margin:'18px auto 0',background:'transparent',border:'none',fontSize:10,color:'#2d3748',fontFamily:"'DM Mono',monospace",letterSpacing:'0.1em',cursor:'pointer'}},'CLOSE')
+    )
+  );
+}
 
 // ─── SHELL ────────────────────────────────────────────────────────────────────
 function Shell() {
@@ -764,7 +856,11 @@ function Shell() {
   var s1=useState('HOME');  var tab=s1[0],setTab=s1[1];
   var s2=useState(false);   var offline=s2[0],setOffline=s2[1];
   var s3=useState(false);   var showVIP=s3[0],setShowVIP=s3[1];
+  var s4=useState(false);   var showUrge=s4[0],setShowUrge=s4[1];
   var clarity=useClarity(engine.state, vip.isVIP);
+  function urgeCanUse(){return vip.isVIP||(Date.now()-getUrgeLastUsed()>86400000);}
+  function openUrge(){setShowUrge(true);}
+  function markUrgeUsed(){/* timestamp already set in UrgeModal on BEGIN click */}
 
   useEffect(function(){
     function goOff(){setOffline(true);}
@@ -789,7 +885,7 @@ function Shell() {
   }
 
   var pageContent;
-  if      (tab==='HOME')    pageContent=e(HomeTab,    {state:state,engine:engine,XPL:engine.XPL});
+  if      (tab==='HOME')    pageContent=e(HomeTab,    {state:state,engine:engine,XPL:engine.XPL,isVIP:vip.isVIP,onNeedVIP:function(){setShowVIP(true);}});
   else if (tab==='JOURNAL') pageContent=e(JournalTab, {state:state,engine:engine,isVIP:vip.isVIP,onNeedVIP:function(){setShowVIP(true);},onJournalCommit:clarity.activateJournalBoost});
   else if (tab==='TASKS')   pageContent=e(TasksTab,   {state:state,engine:engine});
   else                      pageContent=e(ClarityTab, {state:state,engine:engine,clarity:clarity,isVIP:vip.isVIP,onNeedVIP:function(){setShowVIP(true);}});
@@ -797,6 +893,7 @@ function Shell() {
   return e('div',{style:{minHeight:'100vh',background:'#0d1117',color:'#e2e8f0',fontFamily:"'DM Sans',sans-serif"}},
     e('style',null,CSS),
     e(VIPModal,{open:showVIP,onClose:function(){setShowVIP(false);},onUpgrade:vip.upgrade}),
+    e(UrgeModal,{open:showUrge,onClose:function(){setShowUrge(false);},isVIP:vip.isVIP,canUse:urgeCanUse(),onNeedVIP:function(){setShowUrge(false);setShowVIP(true);},onMarkUsed:markUrgeUsed}),
     e(EvolveModal,{tier:engine.evolution,onClose:engine.dismissEvolution}),
     e(AchievementToast,{data:engine.newAchievement,onClose:engine.dismissAchievement}),
 
@@ -822,7 +919,7 @@ function Shell() {
           e('div',{style:{padding:'4px 10px',background:'#11151f',border:'1px solid #1d2740',borderRadius:7}},
             e('span',{style:mn(10,tier.color,{fontWeight:600})},'LV.'+level)
           ),
-          e('button',{onClick:function(){if(window.confirm('Reset all SILO data? This cannot be undone.'))engine.resetAll();},style:{width:30,height:30,background:'#11151f',border:'1px solid #1d2740',borderRadius:7,display:'flex',alignItems:'center',justifyContent:'center',color:'#2d3748',fontSize:13,minWidth:30}},'\u2699')
+          e('button',{onClick:function(){if(window.confirm('Reset all SILO data? This cannot be undone.'))engine.resetAll();},style:{width:30,height:30,background:'#11151f',border:'1px solid #1d2740',borderRadius:7,display:'flex',alignItems:'center',justifyContent:'center',color:'#2d3748',fontSize:13,minWidth:30}},'⚙')
         )
       )
     ),
@@ -840,8 +937,14 @@ function Shell() {
         })
       ),
       pageContent,
-      e('div',{style:{marginTop:20,textAlign:'center',fontFamily:"'DM Mono',monospace",fontSize:8,color:'#1d2740',letterSpacing:'0.12em'}},'SILO v10 \u00B7 PRIVATE \u00B7 ZERO-KNOWLEDGE \u00B7 ALL DATA LOCAL')
+      e('div',{style:{marginTop:20,textAlign:'center',fontFamily:"'DM Mono',monospace",fontSize:8,color:'#1d2740',letterSpacing:'0.12em'}},'SILO v10 · PRIVATE · ZERO-KNOWLEDGE · ALL DATA LOCAL')
     ),
+
+    // Floating SOS button
+    e('button',{onClick:openUrge,title:'Urge Rescue Emergency Protocol',style:{position:'fixed',bottom:78,right:16,zIndex:150,width:44,height:44,borderRadius:'50%',background:'rgba(239,68,68,0.12)',border:'1px solid rgba(239,68,68,0.35)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,color:'#ef4444',cursor:'pointer',backdropFilter:'blur(8px)',WebkitBackdropFilter:'blur(8px)',boxShadow:'0 0 16px rgba(239,68,68,0.15)',transition:'all 0.2s'},
+      onMouseEnter:function(ev){ev.currentTarget.style.background='rgba(239,68,68,0.2)';ev.currentTarget.style.boxShadow='0 0 24px rgba(239,68,68,0.3)';},
+      onMouseLeave:function(ev){ev.currentTarget.style.background='rgba(239,68,68,0.12)';ev.currentTarget.style.boxShadow='0 0 16px rgba(239,68,68,0.15)';}
+    },'\U0001f198'),
 
     // Fixed bottom nav
     e('nav',{style:{position:'fixed',bottom:0,left:0,right:0,zIndex:200,background:'rgba(13,17,23,0.97)',borderTop:'1px solid #1d2740',backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',paddingBottom:'env(safe-area-inset-bottom,0px)'}},
