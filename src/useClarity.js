@@ -1,5 +1,5 @@
 /**
- * useClarity.js — Clarity Clicker Idle Engine Hook (v4 — prestige system)
+ * useClarity.js â Clarity Clicker Idle Engine Hook (v4 â prestige system)
  *
  * New in v4:
  *   - Echo currency persists across resets (silo_echo_v1)
@@ -22,41 +22,41 @@ var MARKET_COST = 500;
 
 // --- GENERATORS --------------------------------------------------------------
 export var GENERATORS = [
-  { id:'focus',    name:'Focus Drone',      icon:'◇', rate:0.1,  baseCost:10,   costMult:1.15, maxCount:50, milestoneStreak:0,  vip:false, color:'#4a9eff', desc:'A quiet anchor. Generates minimal baseline clarity.' },
-  { id:'spark',    name:'Clarity Spark',    icon:'◈', rate:0.25, baseCost:25,   costMult:1.15, maxCount:40, milestoneStreak:0,  vip:false, color:'#06b6d4', desc:'A small but steady flicker of self-awareness.' },
-  { id:'signal',   name:'Signal Node',      icon:'◆', rate:0.5,  baseCost:50,   costMult:1.15, maxCount:30, milestoneStreak:3,  vip:false, color:'#22c55e', desc:'Amplifies passive clarity. Requires a 3-day streak.' },
-  { id:'weaver',   name:'Thought Weaver',   icon:'◉', rate:1.0,  baseCost:100,  costMult:1.17, maxCount:25, milestoneStreak:5,  vip:false, color:'#a78bfa', desc:'Patterns emerging from the noise. Requires a 5-day streak.' },
-  { id:'resonance',name:'Resonance Core',   icon:'◉', rate:2.0,  baseCost:200,  costMult:1.18, maxCount:20, milestoneStreak:7,  vip:false, color:'#8b5cf6', desc:'Deep attunement. Requires one full week of presence.' },
-  { id:'pulse',    name:'Pulse Array',      icon:'⬡', rate:4.0,  baseCost:400,  costMult:1.19, maxCount:15, milestoneStreak:10, vip:false, color:'#fb923c', desc:'Synchronized thought cycles. Requires a 10-day streak.' },
-  { id:'cascade',  name:'Cascade Matrix',   icon:'⬡', rate:8.0,  baseCost:800,  costMult:1.20, maxCount:10, milestoneStreak:14, vip:false, color:'#f59e0b', desc:'Self-amplifying feedback loops. Requires a 14-day streak.' },
-  { id:'lattice',  name:'Void Lattice',     icon:'◈', rate:15.0, baseCost:1500, costMult:1.22, maxCount:8,  milestoneStreak:21, vip:false, color:'#e11d48', desc:'Deep subconscious rewiring. Requires a 21-day streak.' },
-  { id:'sovereign',name:'Sovereign Engine', icon:'◈', rate:25.0, baseCost:2500, costMult:1.25, maxCount:5,  milestoneStreak:30, vip:true,  color:'#e879a0', desc:'VIP Exclusive. Autonomous high-yield clarity synthesis.' },
+  { id:'focus',    name:'Focus Drone',      icon:'â', rate:0.1,  baseCost:10,   costMult:1.15, maxCount:50, milestoneStreak:0,  vip:false, color:'#4a9eff', desc:'A quiet anchor. Generates minimal baseline clarity.' },
+  { id:'spark',    name:'Clarity Spark',    icon:'â', rate:0.25, baseCost:25,   costMult:1.15, maxCount:40, milestoneStreak:0,  vip:false, color:'#06b6d4', desc:'A small but steady flicker of self-awareness.' },
+  { id:'signal',   name:'Signal Node',      icon:'â', rate:0.5,  baseCost:50,   costMult:1.15, maxCount:30, milestoneStreak:3,  vip:false, color:'#22c55e', desc:'Amplifies passive clarity. Requires a 3-day streak.' },
+  { id:'weaver',   name:'Thought Weaver',   icon:'â', rate:1.0,  baseCost:100,  costMult:1.17, maxCount:25, milestoneStreak:5,  vip:false, color:'#a78bfa', desc:'Patterns emerging from the noise. Requires a 5-day streak.' },
+  { id:'resonance',name:'Resonance Core',   icon:'â', rate:2.0,  baseCost:200,  costMult:1.18, maxCount:20, milestoneStreak:7,  vip:false, color:'#8b5cf6', desc:'Deep attunement. Requires one full week of presence.' },
+  { id:'pulse',    name:'Pulse Array',      icon:'â¬¡', rate:4.0,  baseCost:400,  costMult:1.19, maxCount:15, milestoneStreak:10, vip:false, color:'#fb923c', desc:'Synchronized thought cycles. Requires a 10-day streak.' },
+  { id:'cascade',  name:'Cascade Matrix',   icon:'â¬¡', rate:8.0,  baseCost:800,  costMult:1.20, maxCount:10, milestoneStreak:14, vip:false, color:'#f59e0b', desc:'Self-amplifying feedback loops. Requires a 14-day streak.' },
+  { id:'lattice',  name:'Void Lattice',     icon:'â', rate:15.0, baseCost:1500, costMult:1.22, maxCount:8,  milestoneStreak:21, vip:false, color:'#e11d48', desc:'Deep subconscious rewiring. Requires a 21-day streak.' },
+  { id:'sovereign',name:'Sovereign Engine', icon:'â', rate:25.0, baseCost:2500, costMult:1.25, maxCount:5,  milestoneStreak:30, vip:true,  color:'#e879a0', desc:'VIP Exclusive. Autonomous high-yield clarity synthesis.' },
 ];
 
 // --- TAP UPGRADES ------------------------------------------------------------
 export var TAP_UPGRADES = [
-  { level:1, cost:25,   tapBonus:1,  name:'Focus Spike',     icon:'▸',    desc:'+1 Clarity per tap' },
-  { level:2, cost:100,  tapBonus:3,  name:'Signal Burst',    icon:'▸▸', desc:'+3 Clarity per tap' },
-  { level:3, cost:450,  tapBonus:10, name:'Resonance Surge', icon:'▶',    desc:'+10 Clarity per tap' },
-  { level:4, cost:2000, tapBonus:25, name:'Cascade Pulse',   icon:'▶▶', desc:'+25 Clarity per tap' },
-  { level:5, cost:9000, tapBonus:60, name:'Apex Strike',     icon:'◆',    desc:'+60 Clarity per tap' },
+  { level:1, cost:25,   tapBonus:1,  name:'Focus Spike',     icon:'â¸',    desc:'+1 Clarity per tap' },
+  { level:2, cost:100,  tapBonus:3,  name:'Signal Burst',    icon:'â¸â¸', desc:'+3 Clarity per tap' },
+  { level:3, cost:450,  tapBonus:10, name:'Resonance Surge', icon:'â¶',    desc:'+10 Clarity per tap' },
+  { level:4, cost:2000, tapBonus:25, name:'Cascade Pulse',   icon:'â¶â¶', desc:'+25 Clarity per tap' },
+  { level:5, cost:9000, tapBonus:60, name:'Apex Strike',     icon:'â',    desc:'+60 Clarity per tap' },
 ];
 
 // --- SHOP ITEMS --------------------------------------------------------------
 export var SHOP_ITEMS = [
-  { id:'condenser', name:'Mind Condenser',   icon:'◇', cost:20,   maxCount:10, passiveBonus:0.05, color:'#4a9eff', desc:'All generators +5% rate. Stackable up to 10x.' },
-  { id:'amplifier', name:'Signal Amplifier', icon:'◉', cost:200,  maxCount:5,  passiveBonus:0.20, color:'#22c55e', desc:'All generators +20% rate. Stackable up to 5x.' },
-  { id:'prism',     name:'Clarity Prism',    icon:'◈', cost:850,  maxCount:3,  passiveBonus:0.50, color:'#8b5cf6', desc:'All generators +50% rate. Stackable up to 3x.' },
-  { id:'nexus',     name:'Resonance Nexus',  icon:'⬡', cost:5000, maxCount:1,  passiveBonus:1.00, color:'#f59e0b', desc:'Permanently doubles all passive generation.' },
+  { id:'condenser', name:'Mind Condenser',   icon:'â', cost:20,   maxCount:10, passiveBonus:0.05, color:'#4a9eff', desc:'All generators +5% rate. Stackable up to 10x.' },
+  { id:'amplifier', name:'Signal Amplifier', icon:'â', cost:200,  maxCount:5,  passiveBonus:0.20, color:'#22c55e', desc:'All generators +20% rate. Stackable up to 5x.' },
+  { id:'prism',     name:'Clarity Prism',    icon:'â', cost:850,  maxCount:3,  passiveBonus:0.50, color:'#8b5cf6', desc:'All generators +50% rate. Stackable up to 3x.' },
+  { id:'nexus',     name:'Resonance Nexus',  icon:'â¬¡', cost:5000, maxCount:1,  passiveBonus:1.00, color:'#f59e0b', desc:'Permanently doubles all passive generation.' },
 ];
 
 // --- ECHO PERKS --------------------------------------------------------------
 export var ECHO_PERKS = [
-  { id:'amplifier', name:'Echo Amplifier',   icon:'◉', maxLevel:5, costs:[1,2,4,8,15],   color:'#22c55e', desc:'All passive generation +15% per level (up to +75%).' },
-  { id:'tapMem',    name:'Tap Memory',        icon:'▶', maxLevel:3, costs:[2,5,10],        color:'#4a9eff', desc:'Carry 25% / 50% / 75% of tap upgrades into each run.' },
-  { id:'seed',      name:'Clarity Seed',      icon:'◈', maxLevel:3, costs:[1,3,7],         color:'#f59e0b', desc:'Start each run with 50 / 150 / 400 bonus Clarity.' },
-  { id:'resonance', name:'Journal Resonance', icon:'✦', maxLevel:1, costs:[1],             color:'#a78bfa', desc:'Journal 2x boost lasts 48 hours instead of 24 hours.' },
-  { id:'orbEvol',   name:'Orb Evolution',     icon:'◇', maxLevel:6, costs:[1,2,3,5,8,13], color:'#e879a0', desc:'Evolve your orb through 6 visual tiers of power.' },
+  { id:'amplifier', name:'Echo Amplifier',   icon:'â', maxLevel:5, costs:[1,2,4,8,15],   color:'#22c55e', desc:'All passive generation +15% per level (up to +75%).' },
+  { id:'tapMem',    name:'Tap Memory',        icon:'â¶', maxLevel:3, costs:[2,5,10],        color:'#4a9eff', desc:'Carry 25% / 50% / 75% of tap upgrades into each run.' },
+  { id:'seed',      name:'Clarity Seed',      icon:'â', maxLevel:3, costs:[1,3,7],         color:'#f59e0b', desc:'Start each run with 50 / 150 / 400 bonus Clarity.' },
+  { id:'resonance', name:'Journal Resonance', icon:'â¦', maxLevel:1, costs:[1],             color:'#a78bfa', desc:'Journal 2x boost lasts 48 hours instead of 24 hours.' },
+  { id:'orbEvol',   name:'Orb Evolution',     icon:'â', maxLevel:6, costs:[1,2,3,5,8,13], color:'#e879a0', desc:'Evolve your orb through 6 visual tiers of power.' },
 ];
 
 // --- HELPERS -----------------------------------------------------------------
@@ -430,6 +430,18 @@ export function useClarity(coreState, isVIP) {
     return true;
   }
 
+  function receiveXPBridge(xpCost, clarityAmount, signalObj) {
+    var mult = signalObj ? signalObj.clarityMult : 1;
+    var actualClarity = Math.round(clarityAmount * mult);
+    setState(function(prev) {
+      return Object.assign({}, prev, {
+        clarity:     (prev.clarity     || 0) + actualClarity,
+        totalEarned: (prev.totalEarned || 0) + actualClarity,
+        lastSaved:   Date.now(),
+      });
+    });
+  }
+
   return {
     clarity:              clState.clarity,
     totalEarned:          clState.totalEarned,
@@ -461,6 +473,7 @@ export function useClarity(coreState, isVIP) {
     upgradeTap:           upgradeTap,
     rollMarket:           rollMarket,
     activateJournalBoost: activateJournalBoost,
+    receiveXPBridge,
     dismissOffline:       dismissOffline,
     resetClarity:         resetClarity,
     prestige:             prestige,
