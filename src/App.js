@@ -1,5 +1,5 @@
 /**
- * App.js — SILO v10
+ * App.js â SILO v10
  * Shell + all tabs: Home, Journal, Tasks, Signals
  */
 
@@ -14,6 +14,7 @@ import { parse } from './coreParser.js';
 import { ClarityTab } from './ClarityTab.js';
 import { useVIP, FREE_JOURNAL_LIMIT } from './useVIP.js';
 import { useClarity } from './useClarity.js';
+import { useSignalCheckin, SignalCheckinModal, EvolutionRevealModal, XPBridgeWidget, SignalPulse, XP_BRIDGE_RATE, XP_BRIDGE_CLARITY } from './SignalCheckin.js';
 
 var e         = React.createElement;
 var useState  = React.useState;
@@ -22,7 +23,7 @@ var useRef    = React.useRef;
 function cond(test, el) { return test ? el : null; }
 function c2(test, a, b) { return test ? a : b; }
 
-// ─── GLOBAL CSS ───────────────────────────────────────────────────────────────
+// âââ GLOBAL CSS âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 var CSS =
   "@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600;700&display=swap');" +
   "*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}" +
@@ -39,21 +40,21 @@ var CSS =
   "@keyframes burnGlow{0%,100%{opacity:0}50%{opacity:1}}" +
   "@keyframes checkPop{0%{transform:scale(0)}60%{transform:scale(1.3)}100%{transform:scale(1)}}";
 
-// ─── STYLE HELPERS ────────────────────────────────────────────────────────────
+// âââ STYLE HELPERS ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function mn(sz,cl,x) { return Object.assign({fontFamily:"'DM Mono',monospace",fontSize:sz,color:cl,letterSpacing:'0.08em'},x||{}); }
 function row(x)      { return Object.assign({display:'flex',alignItems:'center'},x||{}); }
 var card = { background:'#161b27', border:'1px solid #1d2740', borderRadius:16, overflow:'hidden', marginBottom:12 };
 var cardH = { display:'flex', alignItems:'center', justifyContent:'space-between', padding:'11px 15px', borderBottom:'1px solid #161f32', background:'#11151f' };
 
-// ─── TABS ─────────────────────────────────────────────────────────────────────
+// âââ TABS âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 var TABS = [
-  { id:'HOME',    label:'Home',    glyph:'⬡' },
-  { id:'JOURNAL', label:'Journal', glyph:'◎' },
-  { id:'TASKS',   label:'Tasks',   glyph:'▪' },
-  { id:'SIGNALS', label:'Clarity', glyph:'◈' },
+  { id:'HOME',    label:'Home',    glyph:'â¬¡' },
+  { id:'JOURNAL', label:'Journal', glyph:'â' },
+  { id:'TASKS',   label:'Tasks',   glyph:'âª' },
+  { id:'SIGNALS', label:'Clarity', glyph:'â' },
 ];
 
-// ─── STAT BAR ─────────────────────────────────────────────────────────────────
+// âââ STAT BAR âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function StatBar(props) {
   var pct = props.max > 0 ? Math.min((props.val/props.max)*100,100) : 0;
   return e('div',{style:{flex:1}},
@@ -67,7 +68,7 @@ function StatBar(props) {
   );
 }
 
-// ─── CORE ENTITY SVG ──────────────────────────────────────────────────────────
+// âââ CORE ENTITY SVG ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function CoreEntity(props) {
   var lv=props.level, t=props.tier, pct=props.xpPct, kids=[];
   var arcR=44, arcC=2*Math.PI*arcR, off=arcC*(1-Math.min(pct,100)/100);
@@ -97,13 +98,13 @@ function CoreEntity(props) {
   return e('svg',{viewBox:'0 0 200 200',xmlns:'http://www.w3.org/2000/svg',style:{width:'100%',maxWidth:props.size||200,filter:'drop-shadow(0 0 '+(12+Math.min(lv,12)*3)+'px '+t.glow+')',transition:'filter 1.2s ease'}},kids);
 }
 
-// ─── EVOLUTION MODAL ──────────────────────────────────────────────────────────
+// âââ EVOLUTION MODAL ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function EvolveModal(props) {
   if (!props.tier) return null;
   var t=props.tier;
   return e('div',{onClick:props.onClose,style:{position:'fixed',inset:0,zIndex:800,background:'rgba(0,0,0,0.92)',display:'flex',alignItems:'center',justifyContent:'center',padding:24,cursor:'pointer'}},
     e('div',{style:{textAlign:'center',maxWidth:380,cursor:'default',animation:'scaleIn 0.4s cubic-bezier(0.34,1.56,0.64,1)'},onClick:function(ev){ev.stopPropagation();}},
-      e('div',{style:mn(10,t.color,{letterSpacing:'0.3em',marginBottom:14})},'◆ EVOLUTION EVENT'),
+      e('div',{style:mn(10,t.color,{letterSpacing:'0.3em',marginBottom:14})},'â EVOLUTION EVENT'),
       e('div',{style:{fontSize:26,fontWeight:700,color:'#e2e8f0',marginBottom:10,lineHeight:1.2}},t.title),
       e('div',{style:{fontSize:13,color:'#94a3b8',lineHeight:1.7,marginBottom:24}},t.desc),
       e('button',{onClick:props.onClose,style:{padding:'12px 28px',background:'transparent',border:'1px solid '+t.color,borderRadius:10,fontSize:11,color:t.color,fontFamily:"'DM Mono',monospace",letterSpacing:'0.15em',cursor:'pointer'}},'ACKNOWLEDGE')
@@ -111,14 +112,14 @@ function EvolveModal(props) {
   );
 }
 
-// ─── XP TOAST ─────────────────────────────────────────────────────────────────
+// âââ XP TOAST âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function XPToast(props) {
   if (!props.data) return null;
   var d=props.data;
   return e('div',{style:{position:'fixed',top:20,right:20,zIndex:900,background:'#0a0e1a',border:'1px solid '+(d.shiftColor||'#4a9eff'),borderRadius:14,padding:'13px 17px',width:270,boxShadow:'0 0 24px '+(d.shiftColor||'#4a9eff')+'44',animation:'slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1)',fontFamily:"'DM Mono',monospace"}},
     e('div',{style:row({justifyContent:'space-between',marginBottom:9})},
-      e('span',{style:mn(10,d.shiftColor||'#4a9eff',{fontWeight:700,letterSpacing:'0.15em'})},c2(d.action==='burn','◈ PURGE COMPLETE','◆ MATRIX UPDATED')),
-      e('button',{onClick:props.onClose,style:{background:'transparent',border:'none',color:'#475569',cursor:'pointer',fontSize:16,lineHeight:1,padding:'0 2px'}},'×')
+      e('span',{style:mn(10,d.shiftColor||'#4a9eff',{fontWeight:700,letterSpacing:'0.15em'})},c2(d.action==='burn','â PURGE COMPLETE','â MATRIX UPDATED')),
+      e('button',{onClick:props.onClose,style:{background:'transparent',border:'none',color:'#475569',cursor:'pointer',fontSize:16,lineHeight:1,padding:'0 2px'}},'Ã')
     ),
     e('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:6}},
       [{l:'WORDS',v:d.wordCount},{l:'SIGNAL',v:d.shiftLabel?d.shiftLabel.split(' / ')[0]:'Ambient'},{l:'XP',v:'+'+d.xp}].map(function(item){
@@ -131,29 +132,29 @@ function XPToast(props) {
   );
 }
 
-// ─── ACHIEVEMENT TOAST ────────────────────────────────────────────────────────
+// âââ ACHIEVEMENT TOAST ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function AchievementToast(props) {
   if (!props.data) return null;
   var d=props.data;
   return e('div',{style:{position:'fixed',bottom:100,left:'50%',transform:'translateX(-50%)',zIndex:950,background:'#0a0e1a',border:'1px solid '+d.color,borderRadius:14,padding:'14px 20px',minWidth:260,maxWidth:320,boxShadow:'0 0 32px '+d.color+'55',animation:'slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1)',fontFamily:"'DM Mono',monospace",textAlign:'center',cursor:'pointer'},onClick:props.onClose},
-    e('div',{style:mn(9,d.color,{letterSpacing:'0.25em',marginBottom:6})},'◆ ACHIEVEMENT UNLOCKED'),
+    e('div',{style:mn(9,d.color,{letterSpacing:'0.25em',marginBottom:6})},'â ACHIEVEMENT UNLOCKED'),
     e('div',{style:{fontSize:22,marginBottom:4}},d.icon),
     e('div',{style:{fontSize:13,fontWeight:700,color:'#e2e8f0',marginBottom:4}},d.title),
     e('div',{style:{fontSize:11,color:'#475569',lineHeight:1.5}},d.desc)
   );
 }
 
-// ─── VIP MODAL ────────────────────────────────────────────────────────────────
+// âââ VIP MODAL ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function VIPModal(props) {
   if (!props.open) return null;
   var onClose   = props.onClose;
   var onUpgrade = props.onUpgrade;
   var features  = [
-    { icon:'◎', label:'Unlimited Journal Entries', desc:'Free users capped at '+FREE_JOURNAL_LIMIT+' entries' },
-    { icon:'◈', label:'Sovereign Engine Generator', desc:'25 Clarity/s passive idle engine — highest yield' },
-    { icon:'◇', label:'Advanced Analytics',         desc:'Emotional trends, trigger maps, full signal history' },
-    { icon:'⬡', label:'Premium Visual Themes',      desc:'Exclusive color skins for the Core Entity + UI' },
-    { icon:'✦', label:'Journal 2× Boost Upgrade',   desc:'Manual journal entries trigger double passive rate' },
+    { icon:'â', label:'Unlimited Journal Entries', desc:'Free users capped at '+FREE_JOURNAL_LIMIT+' entries' },
+    { icon:'â', label:'Sovereign Engine Generator', desc:'25 Clarity/s passive idle engine â highest yield' },
+    { icon:'â', label:'Advanced Analytics',         desc:'Emotional trends, trigger maps, full signal history' },
+    { icon:'â¬¡', label:'Premium Visual Themes',      desc:'Exclusive color skins for the Core Entity + UI' },
+    { icon:'â¦', label:'Journal 2Ã Boost Upgrade',   desc:'Manual journal entries trigger double passive rate' },
   ];
   return e('div', { onClick:onClose, style:{ position:'fixed', inset:0, zIndex:900, background:'rgba(0,0,0,0.92)', display:'flex', alignItems:'center', justifyContent:'center', padding:24 } },
     e('div', { onClick:function(ev){ev.stopPropagation();}, style:{ width:'100%', maxWidth:420, animation:'scaleIn 0.35s cubic-bezier(0.34,1.56,0.64,1)' } },
@@ -161,7 +162,7 @@ function VIPModal(props) {
       e('div', { style:{ background:'linear-gradient(155deg,#160d22,#1a0e2e)', border:'1px solid #8b5cf666', borderRadius:20, padding:'22px 22px 26px', boxShadow:'0 0 60px rgba(139,92,246,0.2)' } },
         // Header
         e('div', { style:{ textAlign:'center', marginBottom:20 } },
-          e('div', { style:mn(9,'#8b5cf6',{ letterSpacing:'0.28em', marginBottom:8 }) }, '◈ VIP SELF-DEVELOPMENT EXPANSION'),
+          e('div', { style:mn(9,'#8b5cf6',{ letterSpacing:'0.28em', marginBottom:8 }) }, 'â VIP SELF-DEVELOPMENT EXPANSION'),
           e('div', { style:{ fontSize:22, fontWeight:700, color:'#e2e8f0', fontFamily:"'DM Mono',monospace", lineHeight:1.2, marginBottom:6 } }, 'Unlock Full Protocol'),
           e('div', { style:{ fontSize:12, color:'#556070', lineHeight:1.6 } }, 'Everything free users have, plus these exclusive features:')
         ),
@@ -190,7 +191,7 @@ function VIPModal(props) {
             cursor:'pointer',
             boxShadow:'0 0 24px rgba(139,92,246,0.4)',
           },
-        }, '◈ ACTIVATE VIP — UNLOCK EVERYTHING'),
+        }, 'â ACTIVATE VIP â UNLOCK EVERYTHING'),
         e('button', {
           onClick:onClose,
           style:{ display:'block', width:'100%', marginTop:10, background:'transparent', border:'none', fontSize:10, color:'#3d4d63', fontFamily:"'DM Mono',monospace", letterSpacing:'0.1em', cursor:'pointer' },
@@ -200,7 +201,7 @@ function VIPModal(props) {
   );
 }
 
-// ─── ACHIEVEMENTS MODAL ───────────────────────────────────────────────────────
+// âââ ACHIEVEMENTS MODAL âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function AchievementsModal(props) {
   if (!props.open) return null;
   var unlocked=props.unlocked||[];
@@ -222,7 +223,7 @@ function AchievementsModal(props) {
               e('div',{style:{fontSize:12,fontWeight:700,color:isOn?'#e2e8f0':'#2d3748',fontFamily:"'DM Mono',monospace",marginBottom:2}},ach.title),
               e('div',{style:{fontSize:11,color:isOn?'#475569':'#1e2a3a',lineHeight:1.4}},ach.desc)
             ),
-            cond(isOn,e('div',{style:{fontSize:10,color:ach.color,fontFamily:"'DM Mono',monospace",fontWeight:700,flexShrink:0}},'✓'))
+            cond(isOn,e('div',{style:{fontSize:10,color:ach.color,fontFamily:"'DM Mono',monospace",fontWeight:700,flexShrink:0}},'â'))
           );
         })
       )
@@ -230,9 +231,9 @@ function AchievementsModal(props) {
   );
 }
 
-// ─── TASK CREATE MODAL ────────────────────────────────────────────────────────
+// âââ TASK CREATE MODAL ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function TaskCreateModal(props) {
-  // ALL hooks unconditionally at top — React rules of hooks
+  // ALL hooks unconditionally at top â React rules of hooks
   var s1=useState('NEW TASK');   var name=s1[0],setName=s1[1];
   var s2=useState('body');       var cat=s2[0],setCat=s2[1];
   var s3=useState('daily');      var freq=s3[0],setFreq=s3[1];
@@ -271,7 +272,7 @@ function TaskCreateModal(props) {
           e('button',{onClick:function(){setShowLib(false);},style:{padding:'6px 14px',background:!showLib?'#0a1628':'transparent',border:'1px solid '+((!showLib)?'#1e3a5f':'#0f1520'),borderRadius:8,fontSize:9,color:(!showLib)?'#4a9eff':'#475569',fontFamily:"'DM Mono',monospace",cursor:'pointer'}},'CUSTOM'),
           e('button',{onClick:function(){setShowLib(true);},style:{padding:'6px 14px',background:showLib?'#0a1628':'transparent',border:'1px solid '+(showLib?'#1e3a5f':'#0f1520'),borderRadius:8,fontSize:9,color:showLib?'#4a9eff':'#475569',fontFamily:"'DM Mono',monospace",cursor:'pointer'}},'FROM LIBRARY '+c2(availableTemplates.length,'('+availableTemplates.length+')',''))
         ),
-        e('button',{onClick:props.onClose,style:{background:'transparent',border:'none',color:'#475569',cursor:'pointer',fontSize:20,lineHeight:1}},'×')
+        e('button',{onClick:props.onClose,style:{background:'transparent',border:'none',color:'#475569',cursor:'pointer',fontSize:20,lineHeight:1}},'Ã')
       ),
 
       cond(!showLib,
@@ -307,7 +308,7 @@ function TaskCreateModal(props) {
             e('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:6}},
               [1,2,3].map(function(d){
                 var on=diff===d, td=TASK_DIFFS[d];
-                return e('button',{key:d,onClick:function(){setDiff(d);setXp(on?xp:Math.round(50*td.mult));},style:{padding:'10px 0',background:on?td.color+'18':'#080b12',border:'1px solid '+(on?td.color:'#0f1520'),borderRadius:10,fontSize:9,color:on?td.color:'#2d3748',fontFamily:"'DM Mono',monospace",cursor:'pointer',transition:'all 0.15s'}},td.label.toUpperCase()+'\n×'+td.mult);
+                return e('button',{key:d,onClick:function(){setDiff(d);setXp(on?xp:Math.round(50*td.mult));},style:{padding:'10px 0',background:on?td.color+'18':'#080b12',border:'1px solid '+(on?td.color:'#0f1520'),borderRadius:10,fontSize:9,color:on?td.color:'#2d3748',fontFamily:"'DM Mono',monospace",cursor:'pointer',transition:'all 0.15s'}},td.label.toUpperCase()+'\nÃ'+td.mult);
               })
             )
           ),
@@ -320,7 +321,7 @@ function TaskCreateModal(props) {
             )
           ),
           // Create button
-          e('button',{onClick:doCreate,style:{padding:'14px',background:'#0a1628',border:'1px solid #1e3a5f',borderRadius:12,fontSize:11,color:'#4a9eff',fontFamily:"'DM Mono',monospace",fontWeight:700,letterSpacing:'0.15em',cursor:'pointer',width:'100%',marginTop:4}},'◆ ADD TO PROTOCOL')
+          e('button',{onClick:doCreate,style:{padding:'14px',background:'#0a1628',border:'1px solid #1e3a5f',borderRadius:12,fontSize:11,color:'#4a9eff',fontFamily:"'DM Mono',monospace",fontWeight:700,letterSpacing:'0.15em',cursor:'pointer',width:'100%',marginTop:4}},'â ADD TO PROTOCOL')
         )
       ),
 
@@ -337,7 +338,7 @@ function TaskCreateModal(props) {
                   e('div',{style:{width:8,height:8,borderRadius:'50%',background:tc.color,flexShrink:0}}),
                   e('div',{style:{flex:1,minWidth:0}},
                     e('div',{style:{fontSize:12,color:'#94a3b8',fontWeight:600,marginBottom:2}},tmpl.name),
-                    e('div',{style:mn(8,tc.color)},tc.label+' · '+TASK_FREQS[tmpl.freq].label+' · '+tmpl.xp+' XP')
+                    e('div',{style:mn(8,tc.color)},tc.label+' Â· '+TASK_FREQS[tmpl.freq].label+' Â· '+tmpl.xp+' XP')
                   ),
                   e('div',{style:{fontSize:12,color:'#2d3748',fontFamily:"'DM Mono',monospace",flexShrink:0}},'+')
                 );
@@ -348,7 +349,7 @@ function TaskCreateModal(props) {
   );
 }
 
-// ─── TASK ITEM ────────────────────────────────────────────────────────────────
+// âââ TASK ITEM ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function TaskItem(props) {
   var task=props.task, done=props.done, onLog=props.onLog, onDelete=props.onDelete;
   var streak=getTaskStreak(task.id, props.taskLog, task.freq);
@@ -376,7 +377,7 @@ function TaskItem(props) {
     ),
     // Delete (hover)
     cond(hover&&!done&&onDelete,
-      e('button',{onClick:function(ev){ev.stopPropagation();onDelete(task.id);},style:{background:'transparent',border:'none',color:'#2d3748',fontSize:14,cursor:'pointer',padding:'4px 6px',flexShrink:0,lineHeight:1},onMouseEnter:function(ev){ev.currentTarget.style.color='#ef4444';},onMouseLeave:function(ev){ev.currentTarget.style.color='#2d3748';}},'×')
+      e('button',{onClick:function(ev){ev.stopPropagation();onDelete(task.id);},style:{background:'transparent',border:'none',color:'#2d3748',fontSize:14,cursor:'pointer',padding:'4px 6px',flexShrink:0,lineHeight:1},onMouseEnter:function(ev){ev.currentTarget.style.color='#ef4444';},onMouseLeave:function(ev){ev.currentTarget.style.color='#2d3748';}},'Ã')
     ),
     // Complete button
     e('button',{
@@ -384,15 +385,17 @@ function TaskItem(props) {
       style:{width:32,height:32,borderRadius:'50%',background:done?'#14532d':'#0a0d14',border:'1px solid '+(done?'#22c55e':'#1e3a5f'),display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,color:done?'#22c55e':'#1e3a5f',cursor:done?'default':'pointer',flexShrink:0,transition:'all 0.2s',animation:done?'checkPop 0.25s ease':'none'},
       onMouseEnter:function(ev){if(!done)ev.currentTarget.style.borderColor='#22c55e';},
       onMouseLeave:function(ev){if(!done)ev.currentTarget.style.borderColor='#1e3a5f';}
-    },done?'✓':'○')
+    },done?'â':'â')
   );
 }
 
-// ─── HOME TAB ─────────────────────────────────────────────────────────────────
+// âââ HOME TAB âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function HomeTab(props) {
   var s=props.state, engine=props.engine;
   var isVIP=props.isVIP||false;
   var onNeedVIP=props.onNeedVIP||function(){};
+  var signalObj=props.signalObj||null;
+  var onBridgeXP=props.onBridgeXP||function(){};
   var level=getLevelFromXP(s.totalXP||0), lvlXP=getLvlXP(s.totalXP||0);
   var pct=Math.round((lvlXP/props.XPL)*100), tier=getTier(level);
   var taskLog=s.taskLog||[];
@@ -435,7 +438,7 @@ function HomeTab(props) {
               e(StatBar,{label:'SOUL',val:stats.soul,max:mx,color:'#f97316'})
             ),
             !isVIP && e('div',{onClick:onNeedVIP,style:{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}},
-              e('div',{style:{padding:'4px 10px',background:'rgba(139,92,246,0.15)',border:'1px solid #8b5cf655',borderRadius:8,fontSize:9,color:'#8b5cf6',fontFamily:"'DM Mono',monospace",fontWeight:700,letterSpacing:'0.1em'}},'◈ VIP — UNLOCK ANALYTICS')
+              e('div',{style:{padding:'4px 10px',background:'rgba(139,92,246,0.15)',border:'1px solid #8b5cf655',borderRadius:8,fontSize:9,color:'#8b5cf6',fontFamily:"'DM Mono',monospace",fontWeight:700,letterSpacing:'0.1em'}},'â VIP â UNLOCK ANALYTICS')
             )
           )
         )
@@ -489,7 +492,7 @@ function HomeTab(props) {
     e('div',{style:card},
       e('div',{style:cardH},
         e('span',{style:mn(9,'#94a3b8',{fontWeight:700})},'SYSTEM UNLOCKS'),
-        e('button',{onClick:function(){setShowAch(true);},style:{background:'transparent',border:'none',fontSize:9,color:'#4a9eff',fontFamily:"'DM Mono',monospace",letterSpacing:'0.1em',cursor:'pointer'}},unlocked.length+'/'+ACHIEVEMENTS.length+' · VIEW ALL')
+        e('button',{onClick:function(){setShowAch(true);},style:{background:'transparent',border:'none',fontSize:9,color:'#4a9eff',fontFamily:"'DM Mono',monospace",letterSpacing:'0.1em',cursor:'pointer'}},unlocked.length+'/'+ACHIEVEMENTS.length+' Â· VIEW ALL')
       ),
       e('div',{style:{padding:'12px 14px'}},
         e('div',{style:{height:4,background:'#0f1520',borderRadius:2,overflow:'hidden',marginBottom:12}},
@@ -503,25 +506,26 @@ function HomeTab(props) {
                 if(!ach) return null;
                 return e('div',{key:id,title:ach.title,style:{width:34,height:34,borderRadius:9,background:ach.color+'18',border:'1px solid '+ach.color+'50',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14}},ach.icon);
               })
-            )
+            ),
+    e(XPBridgeWidget,{totalXP:s.totalXP||0,onConvert:onBridgeXP,signalObj:signalObj})
       )
     )
   );
 }
 
-// ─── JOURNAL VALIDATION ───────────────────────────────────────────────────────
+// âââ JOURNAL VALIDATION âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function validateJournalEntry(text) {
   var t=text.trim();
   if(t.length<150) return {valid:false,reason:'Need at least 150 characters ('+t.length+'/150).'};
   var words=t.split(/\s+/).filter(function(w){return w.length>0;});
   if(words.length<20) return {valid:false,reason:'Need at least 20 words ('+words.length+'/20).'};
-  if(/(.)\1{4,}/i.test(t)) return {valid:false,reason:'Pattern detected — please write authentically.'};
+  if(/(.)\1{4,}/i.test(t)) return {valid:false,reason:'Pattern detected â please write authentically.'};
   var uc={};for(var ci=0;ci<t.length;ci++)uc[t[ci].toLowerCase()]=1;
-  if(Object.keys(uc).length<8) return {valid:false,reason:'Low diversity detected — write something real.'};
+  if(Object.keys(uc).length<8) return {valid:false,reason:'Low diversity detected â write something real.'};
   return {valid:true,reason:''};
 }
 
-// ─── JOURNAL TAB ──────────────────────────────────────────────────────────────
+// âââ JOURNAL TAB ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function JournalTab(props) {
   var engine=props.engine, state=props.state;
   var isVIP=props.isVIP||false;
@@ -554,7 +558,7 @@ function JournalTab(props) {
     e('style',null,"@keyframes burnOut2{0%{opacity:1;transform:scale(1);filter:blur(0)}100%{opacity:0;transform:scale(0.95);filter:blur(6px)}}@keyframes burnGlow2{0%,100%{opacity:0}50%{opacity:1}}"),
     atLimit && e('div',{style:{background:'#1a0d22',border:'1px solid #8b5cf655',borderRadius:10,padding:'10px 14px',marginBottom:10,display:'flex',alignItems:'center',justifyContent:'space-between'}},
       e('div',null,
-        e('div',{style:mn(9,'#8b5cf6',{fontWeight:700,letterSpacing:'0.12em',marginBottom:2})},'◈ FREE JOURNAL LIMIT REACHED'),
+        e('div',{style:mn(9,'#8b5cf6',{fontWeight:700,letterSpacing:'0.12em',marginBottom:2})},'â FREE JOURNAL LIMIT REACHED'),
         e('div',{style:mn(8,'#556070')},'Upgrade to VIP for unlimited entries')
       ),
       e('button',{onClick:onNeedVIP,style:{padding:'7px 13px',background:'#8b5cf622',border:'1px solid #8b5cf666',borderRadius:8,fontSize:9,color:'#8b5cf6',fontFamily:"'DM Mono',monospace",fontWeight:700,letterSpacing:'0.1em',cursor:'pointer'}},'UPGRADE')
@@ -571,27 +575,27 @@ function JournalTab(props) {
         e('div',{style:{position:'absolute',inset:0,zIndex:2,background:'linear-gradient(135deg,rgba(239,68,68,0.18),rgba(249,115,22,0.12))',pointerEvents:'none',opacity:burning?1:0,animation:burning?'burnGlow2 0.72s ease-out forwards':'none'}}),
         e('textarea',{ref:taRef,value:text,onChange:function(ev){setText(ev.target.value);},onFocus:function(){setFocused(true);},onBlur:function(){setFocused(false);},
           onKeyDown:function(ev){if((ev.ctrlKey||ev.metaKey)&&ev.key==='Enter'){ev.preventDefault();doCommit();}},
-          placeholder:'Begin transmission. Write anything — this space is entirely private and local.\nCommit to save analytics. Burn to vaporize completely.',
+          placeholder:'Begin transmission. Write anything â this space is entirely private and local.\nCommit to save analytics. Burn to vaporize completely.',
           style:{position:'relative',zIndex:1,width:'100%',minHeight:180,padding:'16px 18px',background:'transparent',border:'none',resize:'none',outline:'none',fontSize:14,color:'#e2e8f0',fontFamily:"'DM Sans',sans-serif",lineHeight:1.8,boxSizing:'border-box',caretColor:'#4a9eff',borderLeft:focused?'2px solid #1e3a5f':'2px solid transparent',transition:'border-left-color 0.2s'}
         }),
         cond(warnMsg,
           e('div',{style:{margin:'0 16px 8px',padding:'8px 12px',background:'rgba(239,68,68,0.07)',border:'1px solid rgba(239,68,68,0.25)',borderRadius:8,fontSize:10,color:'#ef4444',fontFamily:"'DM Mono',monospace",letterSpacing:'0.06em',lineHeight:1.4}},
-            '⚠ '+warnMsg
+            'â  '+warnMsg
           )
         ),
         e('div',{style:{padding:'6px 18px 12px',display:'flex',justifyContent:'space-between',alignItems:'center'}},
-          e('span',{style:mn(8,'#1e2a3a')},text.length+' CHARS · CTRL+ENTER TO COMMIT'),
+          e('span',{style:mn(8,'#1e2a3a')},text.length+' CHARS Â· CTRL+ENTER TO COMMIT'),
           null
         )
       ),
       e('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:0,borderTop:'1px solid #0f1520'}},
         e('button',{onClick:doCommit,disabled:!active,style:{padding:'14px 16px',background:active?(atLimit?'#1a0d22':'#0a1628'):'#11151f',borderRight:'1px solid #161f32',display:'flex',flexDirection:'column',alignItems:'flex-start',gap:3,transition:'all 0.15s',cursor:active?'pointer':'default',minHeight:52}},
-          e('span',{style:mn(10,active?(atLimit?'#8b5cf6':'#4a9eff'):'#1a2535',{fontWeight:700,letterSpacing:'0.15em'})},atLimit?'◈ VIP REQUIRED':'◆ COMMIT'),
-          e('span',{style:mn(8,'#2a3750',{letterSpacing:'0.08em'})},atLimit?'UPGRADE TO ADD MORE ENTRIES':'SAVE ANALYTICS · GRANT XP')
+          e('span',{style:mn(10,active?(atLimit?'#8b5cf6':'#4a9eff'):'#1a2535',{fontWeight:700,letterSpacing:'0.15em'})},atLimit?'â VIP REQUIRED':'â COMMIT'),
+          e('span',{style:mn(8,'#2a3750',{letterSpacing:'0.08em'})},atLimit?'UPGRADE TO ADD MORE ENTRIES':'SAVE ANALYTICS Â· GRANT XP')
         ),
         e('button',{onClick:doBurn,disabled:!active,style:{padding:'14px 16px',background:active?'#150806':'#080b12',display:'flex',flexDirection:'column',alignItems:'flex-start',gap:3,transition:'all 0.15s',cursor:active?'pointer':'default',minHeight:52}},
-          e('span',{style:mn(10,active?'#ef4444':'#1a2535',{fontWeight:700,letterSpacing:'0.15em'})},'◈ BURN & PURGE'),
-          e('span',{style:mn(8,'#1e2a3a',{letterSpacing:'0.08em'})},'VAPORIZE · GRANT XP')
+          e('span',{style:mn(10,active?'#ef4444':'#1a2535',{fontWeight:700,letterSpacing:'0.15em'})},'â BURN & PURGE'),
+          e('span',{style:mn(8,'#1e2a3a',{letterSpacing:'0.08em'})},'VAPORIZE Â· GRANT XP')
         )
       )
     ),
@@ -613,10 +617,10 @@ function JournalTab(props) {
                   e('div',{style:{width:6,height:6,borderRadius:'50%',background:sc,flexShrink:0}}),
                   e('div',{style:{minWidth:0}},
                     e('div',{style:{fontSize:12,color:'#94a3b8',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},en.text?en.text.slice(0,60)+(en.text.length>60?'...':''):'[purged]'),
-                    e('div',{style:mn(8,'#2d3748',{marginTop:2})},en.date+' · +'+en.xp+' XP')
+                    e('div',{style:mn(8,'#2d3748',{marginTop:2})},en.date+' Â· +'+en.xp+' XP')
                   )
                 ),
-                e('span',{style:{color:'#2d3748',fontSize:12,flexShrink:0,marginLeft:8}},isX?'▲':'▼')
+                e('span',{style:{color:'#2d3748',fontSize:12,flexShrink:0,marginLeft:8}},isX?'â²':'â¼')
               ),
               cond(isX&&en.text,
                 e('div',{style:{padding:'0 15px 13px 15px',fontSize:13,color:'#475569',lineHeight:1.75,borderTop:'1px solid #0a0d14',paddingTop:11,whiteSpace:'pre-wrap'}},en.text)
@@ -628,7 +632,7 @@ function JournalTab(props) {
   );
 }
 
-// ─── TASKS TAB ────────────────────────────────────────────────────────────────
+// âââ TASKS TAB ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function TasksTab(props) {
   var engine=props.engine, state=props.state;
   var tasks=state.tasks||[];
@@ -723,15 +727,15 @@ function TasksTab(props) {
     // Task completion toast
     cond(toastTask!==null,
       e('div',{style:{position:'fixed',top:20,right:20,zIndex:900,background:'#0a0e1a',border:'1px solid '+((TASK_CATS[toastTask&&toastTask.cat]||TASK_CATS.body).color),borderRadius:14,padding:'12px 16px',boxShadow:'0 0 24px '+((TASK_CATS[toastTask&&toastTask.cat]||TASK_CATS.body).glow),animation:'slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1)',fontFamily:"'DM Mono',monospace"}},
-        e('div',{style:mn(10,(TASK_CATS[toastTask&&toastTask.cat]||TASK_CATS.body).color,{fontWeight:700,marginBottom:5,letterSpacing:'0.15em'})},'▪ TASK COMPLETE'),
+        e('div',{style:mn(10,(TASK_CATS[toastTask&&toastTask.cat]||TASK_CATS.body).color,{fontWeight:700,marginBottom:5,letterSpacing:'0.15em'})},'âª TASK COMPLETE'),
         e('div',{style:{fontSize:13,color:'#e2e8f0',marginBottom:3}},toastTask?toastTask.name:''),
-        e('div',{style:mn(9,'#22c55e')},'+'+Math.round((toastTask?toastTask.xp:0)*((TASK_DIFFS[toastTask&&toastTask.diff]||TASK_DIFFS[1]).mult))+' XP · Core evolving')
+        e('div',{style:mn(9,'#22c55e')},'+'+Math.round((toastTask?toastTask.xp:0)*((TASK_DIFFS[toastTask&&toastTask.diff]||TASK_DIFFS[1]).mult))+' XP Â· Core evolving')
       )
     )
   );
 }
 
-// ─── 30-DAY LINE CHART ────────────────────────────────────────────────────────
+// âââ 30-DAY LINE CHART ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function LineChart30(props) {
   var ws=props.weeklyShifts||{};
   var days=[];
@@ -780,9 +784,9 @@ function LineChart30(props) {
   );
 }
 
-// ─── SIGNALS TAB → replaced by ClarityTab ────────────────────────────────────
+// âââ SIGNALS TAB â replaced by ClarityTab ââââââââââââââââââââââââââââââââââââ
 
-// ─── URGE RESCUE MODAL ────────────────────────────────────────────────────────
+// âââ URGE RESCUE MODAL ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 var URGE_KEY='silo_urge_v1';
 function getUrgeLastUsed(){try{return parseInt(localStorage.getItem(URGE_KEY)||'0',10);}catch(x){return 0;}}
 function setUrgeLastUsed(){try{localStorage.setItem(URGE_KEY,String(Date.now()));}catch(x){}}
@@ -814,7 +818,7 @@ function UrgeModal(props) {
   var GROUNDS=['Name 5 things you can see.','Name 4 things you can touch.','Name 3 things you can hear.','Name 2 things you can smell.','Name 1 thing you can taste.'];
   return e('div',{onClick:onClose,style:{position:'fixed',inset:0,zIndex:950,background:'rgba(0,0,0,0.96)',display:'flex',alignItems:'center',justifyContent:'center',padding:24}},
     e('div',{onClick:function(ev){ev.stopPropagation();},style:{width:'100%',maxWidth:360,textAlign:'center'}},
-      e('div',{style:mn(9,'#4a9eff',{letterSpacing:'0.28em',marginBottom:6})},'◈ URGE RESCUE'),
+      e('div',{style:mn(9,'#4a9eff',{letterSpacing:'0.28em',marginBottom:6})},'â URGE RESCUE'),
       e('div',{style:{fontSize:16,fontWeight:700,color:'#e2e8f0',marginBottom:4,fontFamily:"'DM Mono',monospace"}},'Emergency Protocol'),
       !canUse
         ? e('div',{style:{background:'#1a0d22',border:'1px solid #8b5cf655',borderRadius:14,padding:'22px',margin:'20px 0'}},
@@ -838,7 +842,7 @@ function UrgeModal(props) {
               onClick:function(){setStarted(true);setUrgeLastUsed();props.onMarkUsed&&props.onMarkUsed();},
               style:{padding:'13px 30px',background:'rgba(74,158,255,0.08)',border:'1px solid #4a9eff44',borderRadius:12,fontSize:11,color:'#4a9eff',fontFamily:"'DM Mono',monospace",fontWeight:700,letterSpacing:'0.15em',cursor:'pointer',marginBottom:16}
             },'BEGIN BREATHING'),
-            isVIP && e('div',{style:{fontSize:9,color:'#8b5cf6',fontFamily:"'DM Mono',monospace",letterSpacing:'0.1em',marginBottom:12}},'◈ VIP — UNLIMITED ACCESS'),
+            isVIP && e('div',{style:{fontSize:9,color:'#8b5cf6',fontFamily:"'DM Mono',monospace",letterSpacing:'0.1em',marginBottom:12}},'â VIP â UNLIMITED ACCESS'),
             e('div',{style:{background:'#0a0e1a',border:'1px solid #1d2740',borderRadius:12,padding:'13px 15px',textAlign:'left',marginTop:4}},
               e('div',{style:mn(8,'#2d3748',{marginBottom:8,letterSpacing:'0.15em'})},'5-4-3-2-1 GROUNDING'),
               GROUNDS.map(function(g,gi){return e('div',{key:gi,style:{fontSize:11,color:'#2d3748',padding:'5px 0',borderBottom:gi<4?'1px solid #0a0d14':'none'}},g);})
@@ -849,10 +853,14 @@ function UrgeModal(props) {
   );
 }
 
-// ─── SHELL ────────────────────────────────────────────────────────────────────
+// âââ SHELL ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function Shell() {
   var engine=useCoreEngine();
   var vip=useVIP();
+  var signal=useSignalCheckin();
+  var s_checkin=useState(true); var showCheckin=s_checkin[0],setShowCheckin=s_checkin[1];
+  var s_evreveal=useState(null); var evReveal=s_evreveal[0],setEvReveal=s_evreveal[1];
+  useEffect(function(){if(engine.evolution)setEvReveal(engine.evolution);},[engine.evolution&&engine.evolution.title]);
   var s1=useState('HOME');  var tab=s1[0],setTab=s1[1];
   var s2=useState(false);   var offline=s2[0],setOffline=s2[1];
   var s3=useState(false);   var showVIP=s3[0],setShowVIP=s3[1];
@@ -885,7 +893,7 @@ function Shell() {
   }
 
   var pageContent;
-  if      (tab==='HOME')    pageContent=e(HomeTab,    {state:state,engine:engine,XPL:engine.XPL,isVIP:vip.isVIP,onNeedVIP:function(){setShowVIP(true);}});
+  if      (tab==='HOME')    pageContent=e(HomeTab,    {state:state,engine:engine,XPL:engine.XPL,isVIP:vip.isVIP,onNeedVIP:function(){setShowVIP(true);},signalObj:signal.todayObj,onBridgeXP:function(){var txp=engine.state.totalXP||0;if(txp>=XP_BRIDGE_RATE){clarity.receiveXPBridge(XP_BRIDGE_RATE,XP_BRIDGE_CLARITY,signal.todayObj);try{var sk=localStorage.getItem('silo_core_v4');var cd=sk?JSON.parse(sk):{};cd.totalXP=Math.max(0,(cd.totalXP||0)-XP_BRIDGE_RATE);localStorage.setItem('silo_core_v4',JSON.stringify(cd));window.dispatchEvent(new Event('storage'));}catch(ex){}}}});
   else if (tab==='JOURNAL') pageContent=e(JournalTab, {state:state,engine:engine,isVIP:vip.isVIP,onNeedVIP:function(){setShowVIP(true);},onJournalCommit:clarity.activateJournalBoost});
   else if (tab==='TASKS')   pageContent=e(TasksTab,   {state:state,engine:engine});
   else                      pageContent=e(ClarityTab, {state:state,engine:engine,clarity:clarity,isVIP:vip.isVIP,onNeedVIP:function(){setShowVIP(true);}});
@@ -894,12 +902,14 @@ function Shell() {
     e('style',null,CSS),
     e(VIPModal,{open:showVIP,onClose:function(){setShowVIP(false);},onUpgrade:vip.upgrade}),
     e(UrgeModal,{open:showUrge,onClose:function(){setShowUrge(false);},isVIP:vip.isVIP,canUse:urgeCanUse(),onNeedVIP:function(){setShowUrge(false);setShowVIP(true);},onMarkUsed:markUrgeUsed}),
+      e(SignalCheckinModal,{show:showCheckin&&!signal.todayId,onSelect:function(s){signal.doCheckin(s);setShowCheckin(false);}}),
+      e(EvolutionRevealModal,{tier:evReveal,onClose:function(){setEvReveal(null);}}),
     e(EvolveModal,{tier:engine.evolution,onClose:engine.dismissEvolution}),
     e(AchievementToast,{data:engine.newAchievement,onClose:engine.dismissAchievement}),
 
     // Offline banner
     cond(offline,
-      e('div',{style:{background:'#161b27',borderBottom:'1px solid #1d2740',padding:'5px 20px',textAlign:'center',fontFamily:"'DM Mono',monospace",fontSize:9,color:'#475569',letterSpacing:'0.12em'}},'OFFLINE — ALL DATA LOCAL')
+      e('div',{style:{background:'#161b27',borderBottom:'1px solid #1d2740',padding:'5px 20px',textAlign:'center',fontFamily:"'DM Mono',monospace",fontSize:9,color:'#475569',letterSpacing:'0.12em'}},'OFFLINE â ALL DATA LOCAL')
     ),
 
     // Header
@@ -910,7 +920,8 @@ function Shell() {
             e('div',{style:{width:6,height:6,borderRadius:'50%',background:tier.color,animation:'pulse 2s ease-in-out infinite'}})
           ),
           e('span',{style:mn(14,'#e2e8f0',{fontWeight:700,letterSpacing:'0.18em'})},'SILO'),
-          vip.isVIP && e('span',{style:{fontSize:8,fontFamily:"'DM Mono',monospace",color:'#8b5cf6',fontWeight:700,letterSpacing:'0.15em',marginLeft:4}},'VIP')
+          vip.isVIP && e('span',{style:{fontSize:8,fontFamily:"'DM Mono',monospace",color:'#8b5cf6',fontWeight:700,letterSpacing:'0.15em',marginLeft:4}},'VIP'),
+          e(SignalPulse,{signalObj:signal.todayObj,onClick:function(){setShowCheckin(true);}})
         ),
         e('div',{style:row({gap:8})},
           e('div',{style:{padding:'4px 10px',background:'rgba(74,158,255,0.06)',border:'1px solid #1e3a5f',borderRadius:7}},
@@ -919,7 +930,7 @@ function Shell() {
           e('div',{style:{padding:'4px 10px',background:'#11151f',border:'1px solid #1d2740',borderRadius:7}},
             e('span',{style:mn(10,tier.color,{fontWeight:600})},'LV.'+level)
           ),
-          e('button',{onClick:function(){if(window.confirm('Reset all SILO data? This cannot be undone.'))engine.resetAll();},style:{width:30,height:30,background:'#11151f',border:'1px solid #1d2740',borderRadius:7,display:'flex',alignItems:'center',justifyContent:'center',color:'#2d3748',fontSize:13,minWidth:30}},'⚙')
+          e('button',{onClick:function(){if(window.confirm('Reset all SILO data? This cannot be undone.'))engine.resetAll();},style:{width:30,height:30,background:'#11151f',border:'1px solid #1d2740',borderRadius:7,display:'flex',alignItems:'center',justifyContent:'center',color:'#2d3748',fontSize:13,minWidth:30}},'â')
         )
       )
     ),
@@ -937,11 +948,11 @@ function Shell() {
         })
       ),
       pageContent,
-      e('div',{style:{marginTop:20,textAlign:'center',fontFamily:"'DM Mono',monospace",fontSize:8,color:'#1d2740',letterSpacing:'0.12em'}},'SILO v10 · PRIVATE · ZERO-KNOWLEDGE · ALL DATA LOCAL')
+      e('div',{style:{marginTop:20,textAlign:'center',fontFamily:"'DM Mono',monospace",fontSize:8,color:'#1d2740',letterSpacing:'0.12em'}},'SILO v10 Â· PRIVATE Â· ZERO-KNOWLEDGE Â· ALL DATA LOCAL')
     ),
 
     // Floating SOS button
-    e('button',{onClick:openUrge,title:'Urge Rescue — Emergency Protocol',style:{position:'fixed',bottom:82,right:14,zIndex:150,width:46,height:46,borderRadius:'50%',background:'rgba(13,17,23,0.92)',border:'1.5px solid rgba(239,68,68,0.5)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:1,cursor:'pointer',backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)',boxShadow:'0 0 0 0 rgba(239,68,68,0.4)',animation:'sos-pulse 2.8s ease-in-out infinite',transition:'border-color 0.2s,box-shadow 0.2s'},
+    e('button',{onClick:openUrge,title:'Urge Rescue â Emergency Protocol',style:{position:'fixed',bottom:82,right:14,zIndex:150,width:46,height:46,borderRadius:'50%',background:'rgba(13,17,23,0.92)',border:'1.5px solid rgba(239,68,68,0.5)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:1,cursor:'pointer',backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)',boxShadow:'0 0 0 0 rgba(239,68,68,0.4)',animation:'sos-pulse 2.8s ease-in-out infinite',transition:'border-color 0.2s,box-shadow 0.2s'},
       onMouseEnter:function(ev){ev.currentTarget.style.borderColor='rgba(239,68,68,0.9)';ev.currentTarget.style.boxShadow='0 0 18px rgba(239,68,68,0.4)';},
       onMouseLeave:function(ev){ev.currentTarget.style.borderColor='rgba(239,68,68,0.5)';ev.currentTarget.style.boxShadow='0 0 0 0 rgba(239,68,68,0.4)';}
     },
