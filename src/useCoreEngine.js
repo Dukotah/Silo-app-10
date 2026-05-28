@@ -1,5 +1,5 @@
 /**
- * useCoreEngine.js — SILO v10 Core Engine
+ * useCoreEngine.js â SILO v10 Core Engine
  * Task system, achievements, journal, XP/levels.
  */
 
@@ -9,10 +9,10 @@ var useEffect     = React.useEffect;
 var createContext = React.createContext;
 var useContext    = React.useContext;
 
-var SK  = 'silo_core_v4';  // bumped from v3 — triggers clean migration
+var SK  = 'silo_core_v4';  // bumped from v3 â triggers clean migration
 export var XPL = 300;
 
-// ─── TIERS ────────────────────────────────────────────────────────────────────
+// âââ TIERS ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 export var TIERS = [
   { min:1,  title:'Quiescent Matrix',   desc:'Dormant. Awaiting first signal.',               color:'#475569', glow:'rgba(71,85,105,0.5)'    },
   { min:4,  title:'Resonant Core',      desc:'Oscillating. Patterns emerging from noise.',    color:'#4a9eff', glow:'rgba(74,158,255,0.55)'  },
@@ -29,7 +29,7 @@ export function getTier(level) {
   return TIERS[0];
 }
 
-// ─── TASK SYSTEM CONSTANTS ────────────────────────────────────────────────────
+// âââ TASK SYSTEM CONSTANTS ââââââââââââââââââââââââââââââââââââââââââââââââââââ
 export var TASK_CATS = {
   body: { label:'BODY', color:'#22c55e', glow:'rgba(34,197,94,0.4)'   },
   mind: { label:'MIND', color:'#4a9eff', glow:'rgba(74,158,255,0.4)'  },
@@ -48,7 +48,7 @@ export var TASK_FREQS = {
   once:   { label:'One-Time',reset:'never'},
 };
 
-// Default templates — shown in the "add from library" picker
+// Default templates â shown in the "add from library" picker
 export var TASK_TEMPLATES = [
   { id:'t_run',       name:'Run / Sprint',       xp:75,  cat:'body', freq:'daily',  diff:1, desc:'Physical output'      },
   { id:'t_gym',       name:'Lift / Train',        xp:100, cat:'body', freq:'daily',  diff:2, desc:'Resistance work'      },
@@ -64,33 +64,33 @@ export var TASK_TEMPLATES = [
   { id:'t_gratitude', name:'Gratitude Log',       xp:35,  cat:'soul', freq:'daily',  diff:1, desc:'Polarity shift'       },
 ];
 
-// ─── ACHIEVEMENTS ─────────────────────────────────────────────────────────────
+// âââ ACHIEVEMENTS âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 export var ACHIEVEMENTS = [
   // Journal
-  { id:'first_commit',  icon:'◆', color:'#4a9eff', title:'First Transmission',   desc:'Submit your first journal entry',        check:function(s){ return (s.log||[]).filter(function(l){return l.action==='commit';}).length>=1; } },
-  { id:'first_burn',    icon:'◈', color:'#ef4444', title:'Signal Purged',         desc:'Burn your first entry to ash',           check:function(s){ return (s.log||[]).filter(function(l){return l.action==='burn';}).length>=1; } },
-  { id:'journal_10',    icon:'◆', color:'#4a9eff', title:'Signal Archive',        desc:'Log 10 journal entries',                 check:function(s){ return (s.log||[]).length>=10; } },
-  { id:'journal_50',    icon:'◆', color:'#4a9eff', title:'Transmission Matrix',   desc:'Log 50 journal entries',                 check:function(s){ return (s.log||[]).length>=50; } },
+  { id:'first_commit',  icon:'â', color:'#4a9eff', title:'First Transmission',   desc:'Submit your first journal entry',        check:function(s){ return (s.log||[]).filter(function(l){return l.action==='commit';}).length>=1; } },
+  { id:'first_burn',    icon:'â', color:'#ef4444', title:'Signal Purged',         desc:'Burn your first entry to ash',           check:function(s){ return (s.log||[]).filter(function(l){return l.action==='burn';}).length>=1; } },
+  { id:'journal_10',    icon:'â', color:'#4a9eff', title:'Signal Archive',        desc:'Log 10 journal entries',                 check:function(s){ return (s.log||[]).length>=10; } },
+  { id:'journal_50',    icon:'â', color:'#4a9eff', title:'Transmission Matrix',   desc:'Log 50 journal entries',                 check:function(s){ return (s.log||[]).length>=50; } },
   // Streaks
-  { id:'streak_3',      icon:'◉', color:'#f97316', title:'3-Day Lock',            desc:'Maintain a 3-day active streak',         check:function(s){ return (s.streak||0)>=3; } },
-  { id:'streak_7',      icon:'◉', color:'#f97316', title:'One Week Signal',       desc:'Hold signal for 7 consecutive days',     check:function(s){ return (s.streak||0)>=7; } },
-  { id:'streak_30',     icon:'◉', color:'#f97316', title:'30-Day Protocol',       desc:'Sustain presence for a full month',      check:function(s){ return (s.streak||0)>=30; } },
+  { id:'streak_3',      icon:'â', color:'#f97316', title:'3-Day Lock',            desc:'Maintain a 3-day active streak',         check:function(s){ return (s.streak||0)>=3; } },
+  { id:'streak_7',      icon:'â', color:'#f97316', title:'One Week Signal',       desc:'Hold signal for 7 consecutive days',     check:function(s){ return (s.streak||0)>=7; } },
+  { id:'streak_30',     icon:'â', color:'#f97316', title:'30-Day Protocol',       desc:'Sustain presence for a full month',      check:function(s){ return (s.streak||0)>=30; } },
   // XP
-  { id:'xp_100',        icon:'◇', color:'#22c55e', title:'Resonance Detected',    desc:'Accumulate 100 total XP',                check:function(s){ return (s.totalXP||0)>=100; } },
-  { id:'xp_500',        icon:'◇', color:'#22c55e', title:'Core Awakening',        desc:'Accumulate 500 total XP',                check:function(s){ return (s.totalXP||0)>=500; } },
-  { id:'xp_1000',       icon:'◇', color:'#22c55e', title:'Neural Cascade',        desc:'Accumulate 1,000 total XP',              check:function(s){ return (s.totalXP||0)>=1000; } },
-  { id:'xp_5000',       icon:'◇', color:'#f59e0b', title:'Monolithic Signal',     desc:'Accumulate 5,000 total XP',              check:function(s){ return (s.totalXP||0)>=5000; } },
+  { id:'xp_100',        icon:'â', color:'#22c55e', title:'Resonance Detected',    desc:'Accumulate 100 total XP',                check:function(s){ return (s.totalXP||0)>=100; } },
+  { id:'xp_500',        icon:'â', color:'#22c55e', title:'Core Awakening',        desc:'Accumulate 500 total XP',                check:function(s){ return (s.totalXP||0)>=500; } },
+  { id:'xp_1000',       icon:'â', color:'#22c55e', title:'Neural Cascade',        desc:'Accumulate 1,000 total XP',              check:function(s){ return (s.totalXP||0)>=1000; } },
+  { id:'xp_5000',       icon:'â', color:'#f59e0b', title:'Monolithic Signal',     desc:'Accumulate 5,000 total XP',              check:function(s){ return (s.totalXP||0)>=5000; } },
   // Tiers
-  { id:'tier_2',        icon:'⬡', color:'#4a9eff', title:'Resonant Core Tier',    desc:'Reach Level 4',                          check:function(s){ return getLevelFromXP(s.totalXP||0)>=4; } },
-  { id:'tier_3',        icon:'⬡', color:'#22c55e', title:'Kinetic Lattice Tier',  desc:'Reach Level 8',                          check:function(s){ return getLevelFromXP(s.totalXP||0)>=8; } },
-  { id:'tier_4',        icon:'⬡', color:'#e879a0', title:'Cascade Engine Tier',   desc:'Reach Level 13',                         check:function(s){ return getLevelFromXP(s.totalXP||0)>=13; } },
-  { id:'tier_5',        icon:'⬡', color:'#a78bfa', title:'Sovereign Nexus Tier',  desc:'Reach Level 18',                         check:function(s){ return getLevelFromXP(s.totalXP||0)>=18; } },
+  { id:'tier_2',        icon:'â¬¡', color:'#4a9eff', title:'Resonant Core Tier',    desc:'Reach Level 4',                          check:function(s){ return getLevelFromXP(s.totalXP||0)>=4; } },
+  { id:'tier_3',        icon:'â¬¡', color:'#22c55e', title:'Kinetic Lattice Tier',  desc:'Reach Level 8',                          check:function(s){ return getLevelFromXP(s.totalXP||0)>=8; } },
+  { id:'tier_4',        icon:'â¬¡', color:'#e879a0', title:'Cascade Engine Tier',   desc:'Reach Level 13',                         check:function(s){ return getLevelFromXP(s.totalXP||0)>=13; } },
+  { id:'tier_5',        icon:'â¬¡', color:'#a78bfa', title:'Sovereign Nexus Tier',  desc:'Reach Level 18',                         check:function(s){ return getLevelFromXP(s.totalXP||0)>=18; } },
   // Tasks
-  { id:'task_first',    icon:'▪', color:'#a78bfa', title:'Protocol Initiated',    desc:'Complete your first task',               check:function(s){ return (s.taskLog||[]).length>=1; } },
-  { id:'task_10',       icon:'▪', color:'#a78bfa', title:'Protocol Active',       desc:'Complete 10 tasks total',                check:function(s){ return (s.taskLog||[]).length>=10; } },
-  { id:'task_50',       icon:'▪', color:'#a78bfa', title:'System Operative',      desc:'Complete 50 tasks total',                check:function(s){ return (s.taskLog||[]).length>=50; } },
-  { id:'task_100',      icon:'▪', color:'#f59e0b', title:'Infinite Loop',         desc:'Complete 100 tasks total',               check:function(s){ return (s.taskLog||[]).length>=100; } },
-  { id:'trinity',       icon:'△', color:'#e879a0', title:'Trinity Protocol',      desc:'Complete tasks in all 3 categories in one day', check:function(s){
+  { id:'task_first',    icon:'âª', color:'#a78bfa', title:'Protocol Initiated',    desc:'Complete your first task',               check:function(s){ return (s.taskLog||[]).length>=1; } },
+  { id:'task_10',       icon:'âª', color:'#a78bfa', title:'Protocol Active',       desc:'Complete 10 tasks total',                check:function(s){ return (s.taskLog||[]).length>=10; } },
+  { id:'task_50',       icon:'âª', color:'#a78bfa', title:'System Operative',      desc:'Complete 50 tasks total',                check:function(s){ return (s.taskLog||[]).length>=50; } },
+  { id:'task_100',      icon:'âª', color:'#f59e0b', title:'Infinite Loop',         desc:'Complete 100 tasks total',               check:function(s){ return (s.taskLog||[]).length>=100; } },
+  { id:'trinity',       icon:'â³', color:'#e879a0', title:'Trinity Protocol',      desc:'Complete tasks in all 3 categories in one day', check:function(s){
     var today = new Date().toISOString().slice(0,10);
     var cats = {};
     (s.taskLog||[]).forEach(function(tl){ if(tl.date===today) cats[tl.cat]=1; });
@@ -98,7 +98,7 @@ export var ACHIEVEMENTS = [
   }},
 ];
 
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
+// âââ HELPERS ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 export function getLevelFromXP(xp) { return Math.max(1, Math.floor((xp||0) / XPL) + 1); }
 export function getLvlXP(xp)       { return (xp||0) % XPL; }
 export function getXPIntoLevel(xp) { return (xp||0) % XPL; }
@@ -111,7 +111,7 @@ function weekKey() {
   return mon.toISOString().slice(0,10);
 }
 
-// ─── TASK STREAK HELPER (exported so UI can use it) ───────────────────────────
+// âââ TASK STREAK HELPER (exported so UI can use it) âââââââââââââââââââââââââââ
 export function getTaskStreak(taskId, taskLog, freq) {
   var dates = (taskLog||[])
     .filter(function(l){ return l.taskId===taskId; })
@@ -131,7 +131,7 @@ export function getTaskStreak(taskId, taskLog, freq) {
   return streak;
 }
 
-// ─── DEFAULT STATE ────────────────────────────────────────────────────────────
+// âââ DEFAULT STATE ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function defaults() {
   return {
     totalXP:              0,
@@ -144,7 +144,7 @@ function defaults() {
     taskLog:              [],
     completedToday:       {},
     completedWeek:        {},
-    completedOnce:        {},   // permanent — once-type tasks
+    completedOnce:        {},   // permanent â once-type tasks
     completedDate:        null,
     completedWeekKey:     null,
     unlockedAchievements: [],
@@ -158,7 +158,7 @@ function hydrate() {
     if (!r) return defaults();
     var parsed = JSON.parse(r);
     var merged = Object.assign({}, defaults(), parsed);
-    // Migrate v3 → v4: map old activityLog/loggedToday if present
+    // Migrate v3 â v4: map old activityLog/loggedToday if present
     if (parsed.loggedToday && !parsed.completedToday) {
       merged.completedToday  = {};
       merged.completedDate   = parsed.loggedDate || null;
@@ -170,7 +170,7 @@ function hydrate() {
   } catch(x) { return defaults(); }
 }
 
-// ─── CONTEXT ──────────────────────────────────────────────────────────────────
+// âââ CONTEXT ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 var Ctx = createContext(null);
 
 export function CoreProvider(props) {
@@ -213,7 +213,7 @@ export function CoreProvider(props) {
     return unlocked;
   }
 
-  // XP helper — also fires evolution event
+  // XP helper â also fires evolution event
   function applyXP(prev, amt) {
     var nx  = (prev.totalXP||0) + amt;
     var old = getTier(getLevelFromXP(prev.totalXP||0));
@@ -222,7 +222,7 @@ export function CoreProvider(props) {
     return nx;
   }
 
-  // ── ACTIONS ────────────────────────────────────────────────────────────────
+  // ââ ACTIONS ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
   function commitEntry(parseResult) {
     setState(function(prev) {
@@ -300,6 +300,13 @@ export function CoreProvider(props) {
     });
   }
 
+  function spendXP(amount) {
+    setState(function(prev) {
+      if (!prev) return prev;
+      return Object.assign({}, prev, { totalXP: Math.max(0, (prev.totalXP||0) - amount) });
+    });
+  }
+
   function dismissEvolution()  { setEvolution(null);      }
   function dismissAchievement(){ setNewAchievement(null); }
   function resetAll() { try { localStorage.removeItem(SK); } catch(x) {} setState(defaults()); }
@@ -308,6 +315,7 @@ export function CoreProvider(props) {
     value: {
       state, loaded, evolution, newAchievement,
       commitEntry, logTask, createTask, deleteTask,
+        spendXP,
       dismissEvolution, dismissAchievement, resetAll,
       XPL,
     }
