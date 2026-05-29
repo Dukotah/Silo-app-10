@@ -418,7 +418,11 @@ export function SkillTreeTab(props) {
         e('button',{onClick:function(){setSelectedId(null);},style:{background:'transparent',border:'none',color:'#475569',fontSize:19,cursor:'pointer',lineHeight:1,padding:'0 4px'}},'×')
       ),
       e('div', {style:{fontSize:15,fontWeight:700,color:'#e2e8f0',fontFamily:"'DM Mono',monospace",marginBottom:7,lineHeight:1.3,textShadow:selectedNode.unlocked?'0 0 14px '+ATTR_COLORS[selectedNode.attribute]+'55':'none'}}, selectedNode.title),
-      e('div', {style:{fontSize:13,color:'#475569',lineHeight:1.75,marginBottom:14}}, selectedNode.description),
+      e('div', {style:{fontSize:13,color:'#475569',lineHeight:1.75,marginBottom:8}}, selectedNode.description),
+      selectedNode.effect && e('div',{style:{marginBottom:14,padding:'8px 12px',background:ATTR_COLORS[selectedNode.attribute]+'0e',border:'1px solid '+ATTR_COLORS[selectedNode.attribute]+'33',borderRadius:8}},
+        e('span',{style:mn(8,ATTR_COLORS[selectedNode.attribute],{fontWeight:700,letterSpacing:'0.1em'})},'EFFECT · '),
+        e('span',{style:{fontSize:11,color:ATTR_COLORS[selectedNode.attribute],fontFamily:"'DM Mono',monospace"}},selectedNode.effect)
+      ),
       e('div', {style:{display:'flex',gap:8,marginBottom:14,flexWrap:'wrap'}},
         e('div', {style:{background:'#080b12',border:'1px solid #151e30',borderRadius:8,padding:'6px 12px',flexShrink:0}},
           e('div',{style:mn(7,'#2d3748',{marginBottom:3})},'COST'),

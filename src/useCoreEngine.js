@@ -324,7 +324,7 @@ export function CoreProvider(props) {
     });
   }
 
-  function logTask(task) {
+  function logTask(task, extraMult) {
     setState(function(prev) {
       if (!prev) return prev;
       var today = todayKey();
@@ -333,9 +333,10 @@ export function CoreProvider(props) {
                   : task.freq==='once'   ? 'completedOnce'
                   : 'completedToday';
       if ((prev[compKey]||{})[task.id]) return prev;
-      var diffMult = (TASK_DIFFS[task.diff]||TASK_DIFFS[1]).mult;
-      var sMult    = getStreakMult(prev.streak||0);
-      var xpAward  = Math.round(task.xp * diffMult * sMult);
+      var diffMult  = (TASK_DIFFS[task.diff]||TASK_DIFFS[1]).mult;
+      var sMult     = getStreakMult(prev.streak||0);
+      var skillMult = extraMult || 1;
+      var xpAward   = Math.round(task.xp * diffMult * sMult * skillMult);
       var scoreField = (task.cat==='body'||task.cat==='mind'||task.cat==='soul') ? task.cat+'Score' : null;
       var scoreGain  = Math.round(5 * diffMult);
       var newComp = Object.assign({}, prev[compKey]||{}); newComp[task.id] = true;

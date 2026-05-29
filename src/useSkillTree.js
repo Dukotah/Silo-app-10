@@ -110,6 +110,49 @@ function xpToLevel(xp) {
   return Math.max(1, Math.floor(xp / XP_PER_LEVEL) + 1);
 }
 
+// ─── SKILL BONUS COMPUTATION ──────────────────────────────────────────────────
+/**
+ * Converts a list of active effectFlags into concrete gameplay multipliers.
+ *
+ * Fortitude → task XP bonus (additive per node unlocked)
+ * Awareness → journal XP bonus + signal multiplier nudge
+ * Release   → XP Bridge bonus Clarity + reduced bridge cost + shorter urge cooldown
+ */
+export function computeSkillBonuses(effectFlags) {
+  var flags = effectFlags || [];
+  var has   = function(f) { return flags.indexOf(f) !== -1; };
+
+  // Fortitude branch — task XP multiplier
+  var taskBonus = 0;
+  if (has('FORTITUDE_STEADFAST'))  taskBonus += 0.05;
+  if (has('FORTITUDE_CONTROLLED')) taskBonus += 0.08;
+  if (has('FORTITUDE_RESILIENT'))  taskBonus += 0.10;
+  if (has('FORTITUDE_IRONWALL'))   taskBonus += 0.12;
+  if (has('FORTITUDE_SOVEREIGN'))  taskBonus += 0.15;
+
+  // Awareness branch — journal XP multiplier
+  var journalBonus = 0;
+  if (has('AWARENESS_OBSERVER'))  journalBonus += 0.08;
+  if (has('AWARENESS_META'))      journalBonus += 0.10;
+  if (has('AWARENESS_CLARITY'))   journalBonus += 0.12;
+  if (has('AWARENESS_DEEP'))      journalBonus += 0.10;
+  if (has('AWARENESS_ARCHITECT')) journalBonus += 0.15;
+
+  // Release branch — XP Bridge bonuses
+  var bridgeBonusClarity = 0;
+  if (has('RELEASE_EXHALE')) bridgeBonusClarity += 100;
+  if (has('RELEASE_DETACH')) bridgeBonusClarity += 200;
+
+  return {
+    taskXPMult:        1 + taskBonus,
+    journalXPMult:     1 + journalBonus,
+    signalBoost:       has('AWARENESS_CLARITY') ? 0.1 : 0,
+    bridgeBonusClarity: bridgeBonusClarity,
+    bridgeHalfCost:    has('RELEASE_PURGE'),
+    urgeCooldownMs:    has('RELEASE_CATHARSIS') ? 43200000 : 86400000,
+  };
+}
+
 // ─── HOOK ─────────────────────────────────────────────────────────────────────
 export function useSkillTree(coreState) {
   var s1 = useState(loadUnlocked);

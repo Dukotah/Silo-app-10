@@ -206,6 +206,8 @@ export function JournalTab(props) {
   var onNeedVIP = props.onNeedVIP || function(){};
   var onJournalCommit = props.onJournalCommit || function(){};
   var onClarityReward = props.onClarityReward || function(){};
+  var skillJournalMult = props.skillJournalMult || 1;
+  var signalXPMult     = props.signalXPMult     || 1;
 
   var entries = state.journalEntries || [];
   var streak = state.streak || 0;
@@ -276,7 +278,7 @@ export function JournalTab(props) {
     if (moodObj) { r.primaryShift = moodObj.shift || r.primaryShift; r.shiftLabel = moodObj.label; r.shiftColor = moodObj.color; }
     // Prompt bonus XP
     var promptBonus = (todayPrompt && !promptDone && activeMode !== 'vent') ? 25 : 0;
-    r.xp = (r.xp || 0) + promptBonus;
+    r.xp = Math.round(((r.xp || 0) + promptBonus) * skillJournalMult * signalXPMult);
     var clr = Math.round(clarityForEntry(r) * getStreakMult(streak));
     r.clarityAwarded = clr;
     // Store extra metadata  
@@ -317,6 +319,7 @@ export function JournalTab(props) {
   function doBurn() {
     if (!canSubmit) return;
     var r = parse(text, 'burn');
+    r.xp = Math.round((r.xp || 0) * skillJournalMult * signalXPMult);
     var clr = Math.round(clarityForEntry(r) * getStreakMult(streak));
     r.clarityAwarded = clr;
     setBurning(true);
