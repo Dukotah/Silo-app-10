@@ -14,7 +14,7 @@ import {
 import { parse } from './coreParser.js';
 import { ClarityTab } from './ClarityTab.js';
 import { useVIP, FREE_JOURNAL_LIMIT } from './useVIP.js';
-import { useClarity } from './useClarity.js';
+import { useClarity, fmtClarity } from './useClarity.js';
 import { useSignalCheckin, SignalCheckinModal, EvolutionRevealModal, XPBridgeWidget, SignalPulse, XP_BRIDGE_RATE, XP_BRIDGE_CLARITY } from './SignalCheckin.js';
 
 var e         = React.createElement;
@@ -72,6 +72,7 @@ function StatBar(props) {
 // ─── CORE ENTITY SVG ──────────────────────────────────────────────────────────
 function CoreEntity(props) {
   var lv=props.level, t=props.tier, pct=props.xpPct, kids=[];
+  var accent=props.focus||t.color;
   var arcR=44, arcC=2*Math.PI*arcR, off=arcC*(1-Math.min(pct,100)/100);
   for (var ri=0;ri<Math.min(lv,6);ri++) {
     kids.push(e('circle',{key:'r'+ri,cx:'100',cy:'100',r:String(52+ri*15),fill:'none',stroke:t.color,strokeWidth:'0.7',opacity:Math.max(0.03,0.1-ri*0.015),style:{animation:'pulse '+(2.2+ri*0.7)+'s ease-in-out '+(ri*0.35)+'s infinite'}}));
@@ -86,13 +87,13 @@ function CoreEntity(props) {
     var ang=(si/spokes)*Math.PI*2;
     var x1=100+Math.cos(ang)*18, y1=100+Math.sin(ang)*18;
     var x2=100+Math.cos(ang)*(26+lv*2.5), y2=100+Math.sin(ang)*(26+lv*2.5);
-    kids.push(e('line',{key:'sp'+si,x1:x1.toFixed(1),y1:y1.toFixed(1),x2:x2.toFixed(1),y2:y2.toFixed(1),stroke:t.color,strokeWidth:'1',opacity:0.3+lv*0.04}));
+    kids.push(e('line',{key:'sp'+si,x1:x1.toFixed(1),y1:y1.toFixed(1),x2:x2.toFixed(1),y2:y2.toFixed(1),stroke:accent,strokeWidth:'1',opacity:0.3+lv*0.04,style:{transition:'stroke 1.2s ease'}}));
   }
   if (lv>=4) {
     var orbs=Math.min(lv-2,8);
     for (var oi=0;oi<orbs;oi++) {
       var oa=(oi/orbs)*Math.PI*2, ox=100+Math.cos(oa)*38, oy=100+Math.sin(oa)*38;
-      kids.push(e('circle',{key:'o'+oi,cx:ox.toFixed(1),cy:oy.toFixed(1),r:'3',fill:t.color,opacity:0.6,style:{animation:'pulse '+(1.5+oi*0.25)+'s ease-in-out '+(oi*0.18)+'s infinite'}}));
+      kids.push(e('circle',{key:'o'+oi,cx:ox.toFixed(1),cy:oy.toFixed(1),r:'3',fill:accent,opacity:0.6,style:{animation:'pulse '+(1.5+oi*0.25)+'s ease-in-out '+(oi*0.18)+'s infinite',transition:'fill 1.2s ease'}}));
     }
   }
   kids.push(e('text',{key:'lv',x:'100',y:'105',textAnchor:'middle',fontFamily:"'DM Mono',monospace",fontSize:'13',fontWeight:'700',fill:t.color,opacity:0.9},String(lv)));
@@ -129,6 +130,11 @@ function XPToast(props) {
           e('div',{style:{fontSize:12,fontWeight:700,color:'#e2e8f0'}},String(item.v))
         );
       })
+    ),
+    cond(d.clarityAwarded>0,
+      e('div',{style:row({justifyContent:'center',gap:6,marginTop:9,padding:'6px 0',background:'rgba(6,182,212,0.07)',borderRadius:7})},
+        e('span',{style:mn(11,'#06b6d4',{fontWeight:700})},'◈ +'+d.clarityAwarded+' CLARITY')
+      )
     )
   );
 }
@@ -402,6 +408,10 @@ function HomeTab(props) {
   var pct=Math.round((lvlXP/props.XPL)*100), tier=getTier(level);
   var stats={body:s.bodyScore||0,mind:s.mindScore||0,soul:s.soulScore||0};
   var mx=Math.max(stats.body,stats.mind,stats.soul,1);
+  var totalScore=stats.body+stats.mind+stats.soul;
+  var FOCUS_META={body:{c:'#22c55e',l:'BODY-LEANED'},mind:{c:'#4a9eff',l:'MIND-LEANED'},soul:{c:'#f97316',l:'SOUL-LEANED'}};
+  var focusKey=totalScore===0?null:(stats.body>=stats.mind&&stats.body>=stats.soul?'body':(stats.mind>=stats.soul?'mind':'soul'));
+  var focusColor=focusKey?FOCUS_META[focusKey].c:null;
   var streak=s.streak||0;
   var streakMultPct=Math.round((getStreakMult(streak)-1)*100);
   var lastEntry=(s.journalEntries||[])[0]||null;
@@ -412,6 +422,13 @@ function HomeTab(props) {
   for (var i=0;i<milestones.length;i++){if(milestones[i].days>streak){nextMil=milestones[i];break;}}
   var todayTasks=Object.keys(s.completedToday||{}).length;
   var unlocked=s.unlockedAchievements||[];
+  var weekStart=(function(){var d=new Date();var day=d.getDay();var mon=new Date(d);mon.setDate(d.getDate()-(day===0?6:day-1));return mon.toISOString().slice(0,10);})();
+  var weekXP=0;
+  (s.taskLog||[]).forEach(function(l){if(l.date>=weekStart)weekXP+=l.xp||0;});
+  (s.log||[]).forEach(function(l){if(l.date>=weekStart)weekXP+=l.xp||0;});
+  var weekTarget=500+level*100;
+  var weekPct=Math.min(Math.round((weekXP/weekTarget)*100),100);
+  var daysLeft=7-((new Date().getDay()+6)%7);
   var s1=useState(false); var showAch=s1[0],setShowAch=s1[1];
 
   return e('div',{style:{display:'flex',flexDirection:'column',animation:'fadeUp 0.35s ease'}},
@@ -424,9 +441,15 @@ function HomeTab(props) {
         e('span',{style:mn(9,tier.color,{fontWeight:700})},tier.title.toUpperCase())
       ),
       e('div',{style:{padding:'20px 16px',display:'flex',alignItems:'center',gap:16}},
-        e('div',{style:{width:160,flexShrink:0}},e(CoreEntity,{level:level,tier:tier,xpPct:pct})),
+        e('div',{style:{width:160,flexShrink:0}},e(CoreEntity,{level:level,tier:tier,xpPct:pct,focus:focusColor})),
         e('div',{style:{flex:1,minWidth:0}},
           e('div',{style:{fontSize:17,fontWeight:700,color:'#e2e8f0',marginBottom:3,fontFamily:"'DM Mono',monospace"}},'Level '+level),
+          cond(focusKey&&isVIP,
+            e('div',{style:row({gap:6,marginBottom:8})},
+              e('div',{style:{width:7,height:7,borderRadius:'50%',background:focusColor,boxShadow:'0 0 6px '+focusColor}}),
+              e('span',{style:mn(8,focusColor,{fontWeight:700})},FOCUS_META[focusKey].l)
+            )
+          ),
           e('div',{style:{fontSize:12,color:'#475569',marginBottom:14,lineHeight:1.5}},tier.desc),
           e('div',{style:{marginBottom:12}},
             e('div',{style:row({justifyContent:'space-between',marginBottom:4})},e('span',{style:mn(8,'#2d3748')},'FORM XP'),e('span',{style:mn(8,tier.color)},lvlXP+'/'+props.XPL)),
@@ -488,6 +511,24 @@ function HomeTab(props) {
               )
             : e('span',{style:mn(8,'#2d3748')},'NONE YET')
         )
+      )
+    ),
+
+    // Weekly momentum — every module feeds one shared weekly goal
+    e('div',{style:card},
+      e('div',{style:cardH},
+        e('span',{style:mn(9,'#94a3b8',{fontWeight:700})},'WEEKLY MOMENTUM'),
+        e('span',{style:mn(9,weekPct>=100?'#22c55e':'#2d3748',{fontWeight:700})},weekPct>=100?'GOAL MET ◆':daysLeft+'d LEFT')
+      ),
+      e('div',{style:{padding:'12px 14px'}},
+        e('div',{style:row({justifyContent:'space-between',marginBottom:7})},
+          e('span',{style:{fontSize:14,fontWeight:700,color:'#e2e8f0',fontFamily:"'DM Mono',monospace"}},weekXP+' / '+weekTarget+' XP'),
+          e('span',{style:mn(9,weekPct>=100?'#22c55e':'#4a9eff')},weekPct+'%')
+        ),
+        e('div',{style:{height:6,background:'#0f1520',borderRadius:3,overflow:'hidden'}},
+          e('div',{style:{height:'100%',width:weekPct+'%',background:weekPct>=100?'#22c55e':'#4a9eff',borderRadius:3,transition:'width 1s ease',boxShadow:weekPct>=100?'0 0 8px rgba(34,197,94,0.5)':'none'}})
+        ),
+        e('div',{style:mn(8,'#2d3748',{marginTop:7,lineHeight:1.5})},'Every task and journal entry this week feeds your momentum.')
       )
     ),
 
@@ -585,9 +626,9 @@ function JournalTab(props) {
     var v=validateJournalEntry(text);
     if(!v.valid){setWarnMsg(v.reason);setTimeout(function(){setWarnMsg(null);},4500);return;}
     setWarnMsg(null);
-    var r=parse(text,'commit');engine.commitEntry(r);onJournalCommit();onClarityReward(Math.round(clarityForEntry(r)*getStreakMult(state.streak||0)));showToast(r);setText('');if(taRef.current)taRef.current.focus();
+    var r=parse(text,'commit');var clr=Math.round(clarityForEntry(r)*getStreakMult(state.streak||0));r.clarityAwarded=clr;engine.commitEntry(r);onJournalCommit();onClarityReward(clr);showToast(r);setText('');if(taRef.current)taRef.current.focus();
   }
-  function doBurn(){if(!text.trim()||burning)return;var r=parse(text,'burn');setBurning(true);setTimeout(function(){engine.commitEntry(r);onClarityReward(Math.round(clarityForEntry(r)*getStreakMult(state.streak||0)));showToast(r);setText('');setBurning(false);if(taRef.current)taRef.current.focus();},720);}
+  function doBurn(){if(!text.trim()||burning)return;var r=parse(text,'burn');var clr=Math.round(clarityForEntry(r)*getStreakMult(state.streak||0));r.clarityAwarded=clr;setBurning(true);setTimeout(function(){engine.commitEntry(r);onClarityReward(clr);showToast(r);setText('');setBurning(false);if(taRef.current)taRef.current.focus();},720);}
   var hasText=text.trim().length>0, active=hasText&&!burning;
   var wc=hasText?text.trim().split(/\s+/).filter(function(w){return w.length>0;}).length:0;
   var SHIFT_COLORS={HEAVY:'#f97316',HEAT:'#ef4444',CLEAR:'#22c55e',REFLECTIVE:'#4a9eff'};
@@ -925,6 +966,7 @@ function Shell() {
   var level=state?getLevelFromXP(state.totalXP||0):1;
   var tier=getTier(level);
   var xp=state?(state.totalXP||0):0;
+  var streak=state?(state.streak||0):0;
 
   if (!loaded) {
     return e('div',{style:{minHeight:'100vh',background:'#0d1117',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:16}},
@@ -965,11 +1007,19 @@ function Shell() {
           vip.isVIP && e('span',{style:{fontSize:8,fontFamily:"'DM Mono',monospace",color:'#8b5cf6',fontWeight:700,letterSpacing:'0.15em',marginLeft:4}},'VIP'),
           e(SignalPulse,{signalObj:signal.todayObj,onClick:function(){setShowCheckin(true);}})
         ),
-        e('div',{style:row({gap:8})},
-          e('div',{style:{padding:'4px 10px',background:'rgba(74,158,255,0.06)',border:'1px solid #1e3a5f',borderRadius:7}},
-            e('span',{style:mn(10,'#4a9eff',{fontWeight:600})},xp+' XP')
+        e('div',{style:row({gap:6})},
+          e('div',{title:'Total Clarity — earned across every tab',style:{padding:'4px 9px',background:'rgba(6,182,212,0.07)',border:'1px solid #0e4a55',borderRadius:7}},
+            e('span',{style:mn(10,'#06b6d4',{fontWeight:600})},'◈ '+fmtClarity(clarity.clarity))
           ),
-          e('div',{style:{padding:'4px 10px',background:'#11151f',border:'1px solid #1d2740',borderRadius:7}},
+          cond(streak>0,
+            e('div',{title:streak+'-day streak · +'+Math.round((getStreakMult(streak)-1)*100)+'% to all gains',style:{padding:'4px 9px',background:'rgba(249,115,22,0.08)',border:'1px solid #f9731633',borderRadius:7}},
+              e('span',{style:mn(10,'#f97316',{fontWeight:600})},'◉ '+streak+'d')
+            )
+          ),
+          e('div',{title:fmtClarity(xp)+' total XP',style:{padding:'4px 9px',background:'rgba(74,158,255,0.06)',border:'1px solid #1e3a5f',borderRadius:7}},
+            e('span',{style:mn(10,'#4a9eff',{fontWeight:600})},fmtClarity(xp)+' XP')
+          ),
+          e('div',{style:{padding:'4px 9px',background:'#11151f',border:'1px solid #1d2740',borderRadius:7}},
             e('span',{style:mn(10,tier.color,{fontWeight:600})},'LV.'+level)
           ),
           e('button',{onClick:function(){if(window.confirm('Reset all SILO data? This cannot be undone.'))engine.resetAll();},style:{width:30,height:30,background:'#11151f',border:'1px solid #1d2740',borderRadius:7,display:'flex',alignItems:'center',justifyContent:'center',color:'#2d3748',fontSize:13,minWidth:30}},'⚙')
