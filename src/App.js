@@ -5,7 +5,7 @@
 
 import React from 'react';
 import {
-  CoreProvider, useCoreEngine,
+  CoreProvider, useCoreEngine,h
   getTier, getLevelFromXP, getLvlXP,
   TIERS, TASK_CATS, TASK_DIFFS, TASK_FREQS, TASK_TEMPLATES,
   ACHIEVEMENTS, getTaskStreak, XPL,
@@ -457,7 +457,7 @@ function HomeTab(props) {
           cond(focusKey&&isVIP,
             e('div',{style:row({gap:6,marginBottom:8})},
               e('div',{style:{width:7,height:7,borderRadius:'50%',background:focusColor,boxShadow:'0 0 6px '+focusColor}}),
-              e('span',{style:mn(8,focusColor,{fontWeight:700})},FOCUS_META[focusKey].l)
+              e('span',{style:mn(8,focusColor,{fontWeight:700})},(FOCUS_META[focusKey] ? FOCUS_META[focusKey].l : ''))
             )
           ),
           e('div',{style:{fontSize:12,color:'#475569',marginBottom:14,lineHeight:1.5}},tier.desc),
