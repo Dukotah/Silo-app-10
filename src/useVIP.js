@@ -11,6 +11,8 @@
  */
 
 import React from 'react';
+import { Purchases } from '@revenuecat/purchases-capacitor';
+
 var useState  = React.useState;
 var useEffect = React.useEffect;
 var useRef    = React.useRef;
@@ -25,12 +27,17 @@ var VIP_KEY          = 'silo_vip_v1';
 var VIP_ENTITLEMENT  = 'vip';
 export var FREE_JOURNAL_LIMIT = 3;
 
-// ─── RevenueCat loader (lazy, so web build doesn't crash) ─────────────────────
+// ─── RevenueCat availability check ────────────────────────────────────────────
+// Purchases is imported at the top; on web the Capacitor bridge returns no-ops.
+// We detect a real native environment by checking for the underlying plugin.
 function getPurchases() {
   try {
-    // Capacitor plugin is only available in native builds
-    var mod = require('@revenuecat/purchases-capacitor');
-    return mod.Purchases || null;
+    // Capacitor registers plugins on window.Capacitor.Plugins — if the bridge
+    // is absent we're running as a plain web page and should use the fallback.
+    if (typeof window === 'undefined') return null;
+    var plugins = window?.Capacitor?.Plugins;
+    if (!plugins || !plugins['PurchasesPlugin']) return null;
+    return Purchases;
   } catch (x) {
     return null;
   }
