@@ -253,7 +253,10 @@ export function CoreProvider(props) {
     setLoaded(true);
   }, []);
 
-  useEffect(function() { if (state) persist(state); }, [state]);
+  // fix#2: only persist after hydration is complete to avoid wiping data
+  useEffect(function() {
+    if (loaded && state) persist(state);
+  }, [loaded, state]);
 
   // Check and award achievements against a state snapshot
   function checkAchievements(st) {
@@ -385,8 +388,8 @@ export function CoreProvider(props) {
     value: {
       state, loaded, evolution, newAchievement,
       commitEntry, logTask, createTask, deleteTask,
-      spendXP,
-            dismissEvolution, dismissAchievement, resetAll,
+      spendXP, setState,
+      dismissEvolution, dismissAchievement, resetAll,
       XPL,
     }
   }, props.children);
