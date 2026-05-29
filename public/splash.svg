@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2732 2732" width="2732" height="2732">
+  <defs>
+    <radialGradient id="splashBg" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#161b27"/>
+      <stop offset="100%" stop-color="#0d1117"/>
+    </radialGradient>
+    <radialGradient id="splashOrb" cx="50%" cy="50%" r="45%">
+      <stop offset="0%" stop-color="#6d28d9" stop-opacity="0.9"/>
+      <stop offset="70%" stop-color="#4c1d95" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#2e1065" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="splashGlow">
+      <feGaussianBlur stdDeviation="30" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="2732" height="2732" fill="url(#splashBg)"/>
+
+  <!-- Subtle grid -->
+  <g stroke="#1d2740" stroke-width="1.5" opacity="0.3">
+    <line x1="683"  y1="0" x2="683"  y2="2732"/>
+    <line x1="1366" y1="0" x2="1366" y2="2732"/>
+    <line x1="2049" y1="0" x2="2049" y2="2732"/>
+    <line x1="0" y1="683"  x2="2732" y2="683"/>
+    <line x1="0" y1="1366" x2="2732" y2="1366"/>
+    <line x1="0" y1="2049" x2="2732" y2="2049"/>
+  </g>
+
+  <!-- Outer hexagon -->
+  <polygon
+    points="1366,640 2006,1003 2006,1729 1366,2092 726,1729 726,1003"
+    fill="none"
+    stroke="#8b5cf6"
+    stroke-width="4"
+    opacity="0.2"
+  />
+
+  <!-- Orb glow -->
+  <circle cx="1366" cy="1250" r="520" fill="url(#splashOrb)" filter="url(#splashGlow)"/>
+
+  <!-- Signal rings -->
+  <circle cx="1366" cy="1250" r="430" fill="none" stroke="#8b5cf6" stroke-width="4"   opacity="0.5"/>
+  <circle cx="1366" cy="1250" r="330" fill="none" stroke="#7c3aed" stroke-width="6"   opacity="0.7"/>
+  <circle cx="1366" cy="1250" r="220" fill="none" stroke="#6d28d9" stroke-width="8"   opacity="0.9"/>
+
+  <!-- Center diamond -->
+  <polygon points="1366,1050 1566,1250 1366,1450 1166,1250" fill="#c4b5fd" opacity="0.95"/>
+  <polygon points="1366,1100 1516,1250 1366,1400 1216,1250" fill="#8b5cf6"/>
+  <polygon points="1366,1150 1466,1250 1366,1350 1266,1250" fill="#ede9fe" opacity="0.6"/>
+
+  <!-- Signal bar -->
+  <rect x="1066" y="1570" width="600" height="6"  rx="3" fill="#8b5cf6" opacity="0.5"/>
+  <rect x="1216" y="1590" width="300" height="4"  rx="2" fill="#6d28d9" opacity="0.35"/>
+
+  <!-- SILO wordmark -->
+  <text
+    x="1366" y="1840"
+    text-anchor="middle"
+    font-family="'DM Mono', 'Courier New', monospace"
+    font-size="180"
+    font-weight="600"
+    letter-spacing="55"
+    fill="#e2e8f0"
+    opacity="0.95"
+  >SILO</text>
+
+  <!-- Tagline -->
+  <text
+    x="1366" y="1930"
+    text-anchor="middle"
+    font-family="'DM Mono', 'Courier New', monospace"
+    font-size="52"
+    font-weight="400"
+    letter-spacing="20"
+    fill="#8b5cf6"
+    opacity="0.7"
+  >SIGNAL CLARITY</text>
+</svg>

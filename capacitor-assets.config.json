@@ -1,0 +1,15 @@
+{
+  "assets": {
+    "icon": {
+      "path": "public/icon.svg"
+    },
+    "splash": {
+      "path": "public/splash.svg",
+      "backgroundColor": "#0d1117"
+    },
+    "splashDark": {
+      "path": "public/splash.svg",
+      "backgroundColor": "#0d1117"
+    }
+  }
+}

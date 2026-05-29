@@ -157,6 +157,7 @@ function VIPModal(props) {
   if (!props.open) return null;
   var onClose   = props.onClose;
   var onUpgrade = props.onUpgrade;
+  var onRestore = props.onRestore;
   var features  = [
     { icon:'◎', label:'Unlimited Journal Entries', desc:'Free users capped at '+FREE_JOURNAL_LIMIT+' entries' },
     { icon:'◈', label:'Sovereign Engine Generator', desc:'25 Clarity/s passive idle engine — highest yield' },
@@ -200,9 +201,13 @@ function VIPModal(props) {
             boxShadow:'0 0 24px rgba(139,92,246,0.4)',
           },
         }, '◈ ACTIVATE VIP — UNLOCK EVERYTHING'),
+        onRestore && e('button', {
+          onClick:function(){ onRestore(); onClose(); },
+          style:{ display:'block', width:'100%', marginTop:10, background:'transparent', border:'none', fontSize:10, color:'#8b5cf6', fontFamily:"'DM Mono',monospace", letterSpacing:'0.1em', cursor:'pointer', textDecoration:'underline' },
+        }, 'RESTORE PREVIOUS PURCHASE'),
         e('button', {
           onClick:onClose,
-          style:{ display:'block', width:'100%', marginTop:10, background:'transparent', border:'none', fontSize:10, color:'#3d4d63', fontFamily:"'DM Mono',monospace", letterSpacing:'0.1em', cursor:'pointer' },
+          style:{ display:'block', width:'100%', marginTop:8, background:'transparent', border:'none', fontSize:10, color:'#3d4d63', fontFamily:"'DM Mono',monospace", letterSpacing:'0.1em', cursor:'pointer' },
         }, 'CONTINUE AS FREE USER')
       )
     )
@@ -855,6 +860,7 @@ function UrgeModal(props) {
 function Shell() {
   var engine=useCoreEngine();
   var vip=useVIP();
+  useEffect(function(){ vip.initialize(); },[]);
   var signal=useSignalCheckin();
   var s_checkin=useState(true); var showCheckin=s_checkin[0],setShowCheckin=s_checkin[1];
   var s_evreveal=useState(null); var evReveal=s_evreveal[0],setEvReveal=s_evreveal[1];
@@ -899,7 +905,7 @@ function Shell() {
 
   return e('div',{style:{minHeight:'100vh',background:'#0d1117',color:'#e2e8f0',fontFamily:"'DM Sans',sans-serif"}},
     e('style',null,CSS),
-    e(VIPModal,{open:showVIP,onClose:function(){setShowVIP(false);},onUpgrade:vip.upgrade}),
+    e(VIPModal,{open:showVIP,onClose:function(){setShowVIP(false);},onUpgrade:vip.upgrade,onRestore:vip.restorePurchases}),
     e(UrgeModal,{open:showUrge,onClose:function(){setShowUrge(false);},isVIP:vip.isVIP,canUse:urgeCanUse(),onNeedVIP:function(){setShowUrge(false);setShowVIP(true);},onMarkUsed:markUrgeUsed}),
       e(SignalCheckinModal,{show:showCheckin&&!signal.todayId,onSelect:function(s){signal.doCheckin(s);setShowCheckin(false);}}),
       e(EvolutionRevealModal,{tier:evReveal,onClose:function(){setEvReveal(null);}}),

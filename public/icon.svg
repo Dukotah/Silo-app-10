@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#161b27"/>
+      <stop offset="100%" stop-color="#0d1117"/>
+    </radialGradient>
+    <radialGradient id="orb" cx="50%" cy="45%" r="45%">
+      <stop offset="0%" stop-color="#6d28d9"/>
+      <stop offset="60%" stop-color="#4c1d95"/>
+      <stop offset="100%" stop-color="#2e1065" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ring1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#6d28d9"/>
+    </linearGradient>
+    <linearGradient id="ring2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0ea5e9" stop-opacity="0.4"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="230" fill="url(#bg)"/>
+
+  <!-- Subtle grid lines -->
+  <g stroke="#1d2740" stroke-width="1" opacity="0.5">
+    <line x1="256" y1="0" x2="256" y2="1024"/>
+    <line x1="512" y1="0" x2="512" y2="1024"/>
+    <line x1="768" y1="0" x2="768" y2="1024"/>
+    <line x1="0" y1="256" x2="1024" y2="256"/>
+    <line x1="0" y1="512" x2="1024" y2="512"/>
+    <line x1="0" y1="768" x2="1024" y2="768"/>
+  </g>
+
+  <!-- Outer hexagon ring -->
+  <polygon
+    points="512,140 780,296 780,608 512,764 244,608 244,296"
+    fill="none"
+    stroke="url(#ring1)"
+    stroke-width="3"
+    opacity="0.35"
+  />
+
+  <!-- Inner hexagon ring -->
+  <polygon
+    points="512,230 710,344 710,572 512,686 314,572 314,344"
+    fill="none"
+    stroke="url(#ring2)"
+    stroke-width="2"
+    opacity="0.25"
+  />
+
+  <!-- Core orb glow -->
+  <circle cx="512" cy="462" r="210" fill="url(#orb)" filter="url(#glow)"/>
+
+  <!-- Signal rings — concentric arcs suggesting frequency/signal -->
+  <circle cx="512" cy="462" r="170" fill="none" stroke="#8b5cf6" stroke-width="2.5" opacity="0.7"/>
+  <circle cx="512" cy="462" r="130" fill="none" stroke="#7c3aed" stroke-width="3" opacity="0.85"/>
+  <circle cx="512" cy="462" r="90"  fill="none" stroke="#6d28d9" stroke-width="4" opacity="1"/>
+
+  <!-- Center diamond — the "signal node" -->
+  <polygon
+    points="512,382 572,462 512,542 452,462"
+    fill="#c4b5fd"
+    opacity="0.95"
+  />
+  <polygon
+    points="512,400 556,462 512,524 468,462"
+    fill="#8b5cf6"
+  />
+  <!-- Inner highlight -->
+  <polygon
+    points="512,420 540,462 512,500 484,462"
+    fill="#ede9fe"
+    opacity="0.6"
+  />
+
+  <!-- Horizontal signal bar below orb -->
+  <rect x="362" y="590" width="300" height="3" rx="2" fill="#8b5cf6" opacity="0.5"/>
+  <rect x="432" y="603" width="160" height="2" rx="1" fill="#6d28d9" opacity="0.35"/>
+
+  <!-- SILO wordmark -->
+  <text
+    x="512" y="700"
+    text-anchor="middle"
+    font-family="'DM Mono', 'Courier New', monospace"
+    font-size="72"
+    font-weight="600"
+    letter-spacing="22"
+    fill="#e2e8f0"
+    opacity="0.92"
+  >SILO</text>
+
+  <!-- Tagline -->
+  <text
+    x="512" y="740"
+    text-anchor="middle"
+    font-family="'DM Mono', 'Courier New', monospace"
+    font-size="22"
+    font-weight="400"
+    letter-spacing="8"
+    fill="#8b5cf6"
+    opacity="0.7"
+  >SIGNAL CLARITY</text>
+</svg>
