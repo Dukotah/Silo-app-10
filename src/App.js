@@ -276,7 +276,7 @@ if (!props.open) return null;
 var steps = [
 { icon:'◆', title:'Complete Tasks', body:'Head to Tasks and check off your daily protocol. Each task earns XP and Clarity — the two resources that power your Core Entity.' },
 { icon:'◎', title:'Journal Daily', body:'Write in the Journal tab. At least 30 characters and 5 words earns XP. Commit to save, or Burn & Purge to vaporize and still get the reward.' },
-{ icon:'◈', title:'Generate Clarity', body:'In the Clarity tab, tap the orb to earn Clarity, then spend it on Generators that passively earn Clarity while you're away.' },
+{ icon:'◈', title:'Generate Clarity', body:'In the Clarity tab, tap the orb to earn Clarity, then spend it on Generators that passively earn Clarity while you\u2019re away.' },
 { icon:'⬡', title:'Grow Your Entity', body:'Your Core Entity levels up as you earn XP. Maintain a daily streak for bonus multipliers on everything — streak is the most powerful mechanic.' },
 ];
 var s1 = useState(0); var step = s1[0], setStep = s1[1];
