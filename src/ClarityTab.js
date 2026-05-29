@@ -12,9 +12,10 @@
 import React from 'react';
 import { GENERATORS, TAP_UPGRADES, SHOP_ITEMS, ECHO_PERKS, genCost, genMilestoneMult, fmtClarity, calcPrestigeEchoes, calcPrestigeThreshold } from './useClarity.js';
 
-var e        = React.createElement;
-var useState = React.useState;
-var useRef   = React.useRef;
+var e         = React.createElement;
+var useState  = React.useState;
+var useRef    = React.useRef;
+var useEffect = React.useEffect;
 
 var BG   = '#131821';
 var BG2  = '#0f1420';
@@ -260,6 +261,83 @@ function OfflineBanner(props) {
   );
 }
 
+// --- FOCUS MODE --------------------------------------------------------------
+function fmtMMSS(secs) {
+  var m = Math.floor(secs/60), s = secs%60;
+  return (m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+}
+function FocusMode(props) {
+  var streak = props.streak || 0;
+  var DURS = [5,15,25];
+  var s1 = useState(25);    var mins     = s1[0], setMins     = s1[1];
+  var s2 = useState(0);     var secsLeft = s2[0], setSecsLeft = s2[1];
+  var s3 = useState(false); var running  = s3[0], setRunning  = s3[1];
+  var s4 = useState(0);     var reward   = s4[0], setReward   = s4[1];
+  var tickRef = useRef(null);
+
+  useEffect(function(){
+    if (!running) return;
+    tickRef.current = setInterval(function(){
+      setSecsLeft(function(prev){
+        if (prev <= 1) {
+          clearInterval(tickRef.current);
+          var mult   = 1 + Math.min(streak,30)*0.05;
+          var earned = Math.round(mins * 8 * mult);
+          props.onReward(earned);
+          setReward(earned);
+          setRunning(false);
+          setTimeout(function(){ setReward(0); }, 7000);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return function(){ if (tickRef.current) clearInterval(tickRef.current); };
+  }, [running]);
+
+  function start()  { setReward(0); setSecsLeft(mins*60); setRunning(true); }
+  function cancel() { if (tickRef.current) clearInterval(tickRef.current); setRunning(false); setSecsLeft(0); }
+
+  var total = mins*60;
+  var prog  = total>0 ? (1 - secsLeft/total) : 0;
+  var R=52, CIRC=2*Math.PI*R, off=CIRC*(1-prog);
+  var COL='#06b6d4';
+  var projected = Math.round(mins*8*(1+Math.min(streak,30)*0.05));
+
+  return e('div',{style:{background:'linear-gradient(160deg,'+BG+','+BG2+')',border:'1px solid '+(running?COL+'55':BDR),borderRadius:16,padding:'14px',marginBottom:14,transition:'border-color 0.3s'}},
+    e('div',{style:row({justifyContent:'space-between',marginBottom:running?6:10})},
+      e('div',null,
+        e('div',{style:mn(9,running?COL:'#94a3b8',{fontWeight:700,letterSpacing:'0.2em'})},'◈ FOCUS MODE'),
+        e('div',{style:mn(7,DIM,{marginTop:2})},'Deep work converts directly to Clarity')
+      ),
+      reward>0 && e('div',{style:mn(9,'#22c55e',{fontWeight:700})},'+'+reward+' CLARITY')
+    ),
+    running
+      ? e('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',gap:10,padding:'6px 0 2px'}},
+          e('div',{style:{position:'relative',width:140,height:140}},
+            e('svg',{viewBox:'0 0 120 120',style:{width:'100%',height:'100%',transform:'rotate(-90deg)'}},
+              e('circle',{cx:'60',cy:'60',r:String(R),fill:'none',stroke:BDR2,strokeWidth:'6'}),
+              e('circle',{cx:'60',cy:'60',r:String(R),fill:'none',stroke:COL,strokeWidth:'6',strokeDasharray:CIRC.toFixed(1),strokeDashoffset:off.toFixed(1),strokeLinecap:'round',style:{transition:'stroke-dashoffset 1s linear'}})
+            ),
+            e('div',{style:{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}},
+              e('div',{style:{fontSize:24,fontWeight:700,color:'#e2e8f0',fontFamily:"'DM Mono',monospace"}},fmtMMSS(secsLeft)),
+              e('div',{style:mn(7,DIM,{marginTop:3,letterSpacing:'0.14em'})},'STAY PRESENT')
+            )
+          ),
+          e('button',{onClick:cancel,style:{padding:'8px 18px',background:'transparent',border:'1px solid '+BDR,borderRadius:9,fontSize:9,color:DIM,fontFamily:"'DM Mono',monospace",fontWeight:700,letterSpacing:'0.14em',cursor:'pointer'}},'CANCEL — NO REWARD')
+        )
+      : e('div',null,
+          e('div',{style:row({gap:6,marginBottom:10})},
+            DURS.map(function(d){
+              var on = mins===d;
+              return e('button',{key:d,onClick:function(){setMins(d);},style:{flex:1,padding:'10px 0',background:on?COL+'18':BG2,border:'1px solid '+(on?COL+'66':BDR2),borderRadius:10,fontSize:11,color:on?COL:DIM,fontFamily:"'DM Mono',monospace",fontWeight:700,letterSpacing:'0.08em',cursor:'pointer',transition:'all 0.15s'}},d+' MIN');
+            })
+          ),
+          e('button',{onClick:start,style:{width:'100%',padding:'12px',background:COL+'18',border:'1px solid '+COL+'66',borderRadius:10,fontSize:11,color:COL,fontFamily:"'DM Mono',monospace",fontWeight:700,letterSpacing:'0.13em',cursor:'pointer'}},'◆ BEGIN '+mins+'-MIN FOCUS · +'+projected+' CLARITY')
+        )
+  );
+}
+
 // --- MAIN TAB ----------------------------------------------------------------
 export function ClarityTab(props) {
   var cl        = props.clarity;
@@ -328,6 +406,7 @@ export function ClarityTab(props) {
     e('style',null,CLICKER_CSS),
     e(OfflineBanner,{earned:cl.offlineEarned,seconds:cl.offlineSeconds,onDismiss:cl.dismissOffline}),
     e(BoostBanner,{end:cl.journalBoostEnd}),
+    e(FocusMode,{streak:streak,onReward:cl.addClarity}),
 
     // Stats row
     e('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8,marginBottom:14}},

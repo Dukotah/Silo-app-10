@@ -429,6 +429,16 @@ function HomeTab(props) {
   var weekTarget=500+level*100;
   var weekPct=Math.min(Math.round((weekXP/weekTarget)*100),100);
   var daysLeft=7-((new Date().getDay()+6)%7);
+  var onNavigate=props.onNavigate||function(){};
+  var todayKey2=new Date().toISOString().slice(0,10);
+  var dailyTasks=(s.tasks||[]).filter(function(t){return t.freq==='daily';});
+  var dailyLeft=dailyTasks.length-dailyTasks.filter(function(t){return (s.completedToday||{})[t.id];}).length;
+  var journaledToday=(s.journalEntries||[]).some(function(j){return j.date===todayKey2;});
+  var directive=dailyLeft>0
+    ? {label:'Daily Protocol',msg:dailyLeft+' task'+(dailyLeft>1?'s':'')+" left in today's protocol.",cta:'GO TO TASKS',tab:'TASKS',color:'#22c55e'}
+    : !journaledToday
+      ? {label:'Vent Canvas',msg:'No transmission logged today — clear your signal.',cta:'OPEN JOURNAL',tab:'JOURNAL',color:'#4a9eff'}
+      : {label:'Aligned',msg:'All protocols clear. Channel momentum into Clarity.',cta:'ENTER CLARITY',tab:'SIGNALS',color:'#06b6d4'};
   var s1=useState(false); var showAch=s1[0],setShowAch=s1[1];
 
   return e('div',{style:{display:'flex',flexDirection:'column',animation:'fadeUp 0.35s ease'}},
@@ -469,6 +479,18 @@ function HomeTab(props) {
             )
           )
         )
+      )
+    ),
+
+    // Directive — the single most impactful next action, cross-module
+    e('div',{style:Object.assign({},card,{borderColor:directive.color+'44'})},
+      e('div',{style:cardH},
+        e('span',{style:mn(9,'#94a3b8',{fontWeight:700})},'DIRECTIVE'),
+        e('span',{style:mn(9,directive.color,{fontWeight:700})},directive.label.toUpperCase())
+      ),
+      e('div',{style:{padding:'14px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}},
+        e('div',{style:{flex:1,minWidth:0,fontSize:13,color:'#cbd5e1',lineHeight:1.5}},directive.msg),
+        e('button',{onClick:function(){onNavigate(directive.tab);},style:{flexShrink:0,padding:'10px 14px',background:directive.color+'18',border:'1px solid '+directive.color+'66',borderRadius:10,fontSize:9,color:directive.color,fontFamily:"'DM Mono',monospace",fontWeight:700,letterSpacing:'0.12em',cursor:'pointer'}},directive.cta)
       )
     ),
 
@@ -620,6 +642,23 @@ function JournalTab(props) {
   function showToast(r){if(timerRef.current)clearTimeout(timerRef.current);setToast(r);timerRef.current=setTimeout(function(){setToast(null);},3500);}
   var entries=state.journalEntries||[];
   var atLimit=!isVIP && entries.length>=FREE_JOURNAL_LIMIT;
+  // --- Pattern insights (free, derived from logged entries) ---
+  var MOOD_META={HEAVY:{label:'Heavy',color:'#f97316'},HEAT:{label:'Heat',color:'#ef4444'},CLEAR:{label:'Clear',color:'#22c55e'},REFLECTIVE:{label:'Reflective',color:'#4a9eff'}};
+  var insights=(function(){
+    if(!entries.length)return null;
+    var now=new Date(); var weekAgo=new Date(now.getTime()-7*86400000);
+    var counts={}, weekCount=0, daySet={};
+    for(var i=0;i<entries.length;i++){
+      var en=entries[i];
+      if(en.mood){counts[en.mood]=(counts[en.mood]||0)+1;}
+      var d=en.date?new Date(en.date+'T00:00:00'):null;
+      if(d && d>=weekAgo){weekCount++; if(en.date)daySet[en.date]=1;}
+    }
+    var domKey=null, domN=-1;
+    for(var k in counts){if(counts[k]>domN){domN=counts[k];domKey=k;}}
+    var daysActive=Object.keys(daySet).length;
+    return {dom:domKey?MOOD_META[domKey]||{label:domKey,color:'#94a3b8'}:null,weekCount:weekCount,daysActive:daysActive};
+  })();
   function doCommit(){
     if(!text.trim()||burning)return;
     if(atLimit){onNeedVIP();return;}
@@ -681,6 +720,22 @@ function JournalTab(props) {
       e('div',{style:cardH},
         e('span',{style:mn(9,'#94a3b8',{fontWeight:700})},'TRANSMISSION LOG'),
         e('span',{style:mn(9,'#2d3748')},entries.length+' ENTRIES')
+      ),
+      cond(insights,
+        e('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:1,borderBottom:'1px solid #0f1520',background:'#0a0d14'}},
+          e('div',{style:{padding:'11px 14px',background:'#0b0f17'}},
+            e('div',{style:mn(8,'#3d4d63',{letterSpacing:'0.1em',marginBottom:4})},'DOMINANT'),
+            e('div',{style:{fontSize:13,fontWeight:700,color:insights&&insights.dom?insights.dom.color:'#94a3b8'}},insights&&insights.dom?insights.dom.label:'—')
+          ),
+          e('div',{style:{padding:'11px 14px',background:'#0b0f17'}},
+            e('div',{style:mn(8,'#3d4d63',{letterSpacing:'0.1em',marginBottom:4})},'THIS WEEK'),
+            e('div',{style:{fontSize:13,fontWeight:700,color:'#cbd5e1'}},(insights?insights.weekCount:0)+' '+((insights&&insights.weekCount===1)?'entry':'entries'))
+          ),
+          e('div',{style:{padding:'11px 14px',background:'#0b0f17'}},
+            e('div',{style:mn(8,'#3d4d63',{letterSpacing:'0.1em',marginBottom:4})},'CONSISTENCY'),
+            e('div',{style:{fontSize:13,fontWeight:700,color:'#06b6d4'}},(insights?insights.daysActive:0)+'/7 days')
+          )
+        )
       ),
       entries.length===0
         ? e('div',{style:{padding:'28px 18px',textAlign:'center',color:'#2d3748',fontFamily:"'DM Mono',monospace",fontSize:11}},'No transmissions logged yet.')
@@ -977,7 +1032,7 @@ function Shell() {
   }
 
   var pageContent;
-  if      (tab==='HOME')    pageContent=e(HomeTab,    {state:state,engine:engine,XPL:engine.XPL,isVIP:vip.isVIP,onNeedVIP:function(){setShowVIP(true);},signalObj:signal.todayObj,clarityRate:clarity.passiveRate,clarityTotal:clarity.clarity,onBridgeXP:function(){var txp=engine.state.totalXP||0;if(txp>=XP_BRIDGE_RATE){clarity.receiveXPBridge(XP_BRIDGE_RATE,XP_BRIDGE_CLARITY,signal.todayObj);try{var sk=localStorage.getItem('silo_core_v4');var cd=sk?JSON.parse(sk):{};cd.totalXP=Math.max(0,(cd.totalXP||0)-XP_BRIDGE_RATE);localStorage.setItem('silo_core_v4',JSON.stringify(cd));window.dispatchEvent(new Event('storage'));}catch(ex){}}}});
+  if      (tab==='HOME')    pageContent=e(HomeTab,    {state:state,engine:engine,XPL:engine.XPL,isVIP:vip.isVIP,onNeedVIP:function(){setShowVIP(true);},onNavigate:function(t){setTab(t);},signalObj:signal.todayObj,clarityRate:clarity.passiveRate,clarityTotal:clarity.clarity,onBridgeXP:function(){var txp=engine.state.totalXP||0;if(txp>=XP_BRIDGE_RATE){clarity.receiveXPBridge(XP_BRIDGE_RATE,XP_BRIDGE_CLARITY,signal.todayObj);try{var sk=localStorage.getItem('silo_core_v4');var cd=sk?JSON.parse(sk):{};cd.totalXP=Math.max(0,(cd.totalXP||0)-XP_BRIDGE_RATE);localStorage.setItem('silo_core_v4',JSON.stringify(cd));window.dispatchEvent(new Event('storage'));}catch(ex){}}}});
   else if (tab==='JOURNAL') pageContent=e(JournalTab, {state:state,engine:engine,isVIP:vip.isVIP,onNeedVIP:function(){setShowVIP(true);},onJournalCommit:clarity.activateJournalBoost,onClarityReward:clarity.addClarity});
   else if (tab==='TASKS')   pageContent=e(TasksTab,   {state:state,engine:engine,onClarityReward:clarity.addClarity});
   else                      pageContent=e(ClarityTab, {state:state,engine:engine,clarity:clarity,isVIP:vip.isVIP,onNeedVIP:function(){setShowVIP(true);}});
