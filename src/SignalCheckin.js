@@ -129,7 +129,7 @@ export function XPBridgeWidget(props) {
 // SIGNAL PULSE (small indicator for header)
 export function SignalPulse(props) {
   var s = props.signalObj;
-  return e('div',{onClick:props.onClick, title:props.title|||(signalObj?(signalObj.label+': '+signalObj.desc):'Tap to check in your emotional signal state.'),style:{display:'flex',alignItems:'center',gap:8,cursor:props.onClick?'pointer':'default',padding:'4px 10px',background:s?s.color+'12':'transparent',border:'1px solid '+(s?s.color+'55':'#1d274033'),borderRadius:20,transition:'all 0.2s'}},
+  return e('div',{onClick:props.onClick, title:props.title||(signalObj?(signalObj.label+': '+signalObj.desc):'Tap to check in your emotional signal state.'),style:{display:'flex',alignItems:'center',gap:8,cursor:props.onClick?'pointer':'default',padding:'4px 10px',background:s?s.color+'12':'transparent',border:'1px solid '+(s?s.color+'55':'#1d274033'),borderRadius:20,transition:'all 0.2s'}},
     e('div',{style:{width:7,height:7,borderRadius:'50%',background:s?s.color:'#1d2740',boxShadow:s?'0 0 6px '+s.glow+',0 0 12px '+s.glow:'none'}}),
     e('span',{style:{fontSize:9,letterSpacing:'0.2em',color:s?s.color:'#334155',fontFamily:'"DM Mono",monospace'}},s?s.label:'CHECK IN')
   );
