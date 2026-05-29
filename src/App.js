@@ -5,7 +5,7 @@
 
 import React from 'react';
 import {
-  CoreProvider, useCoreEngine,h
+  CoreProvider, useCoreEngine,
   getTier, getLevelFromXP, getLvlXP,
   TIERS, TASK_CATS, TASK_DIFFS, TASK_FREQS, TASK_TEMPLATES,
   ACHIEVEMENTS, getTaskStreak, XPL,
