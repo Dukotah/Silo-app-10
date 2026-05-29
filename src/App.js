@@ -119,7 +119,7 @@ function EvolveModal(props) {
 function XPToast(props) {
   if (!props.data) return null;
   var d=props.data;
-  return e('div',{style:{position:'fixed',top:20,right:20,zIndex:900,background:'#0a0e1a',border:'1px solid '+(d.shiftColor||'#4a9eff'),borderRadius:14,padding:'13px 17px',width:270,boxShadow:'0 0 24px '+(d.shiftColor||'#4a9eff')+'44',animation:'slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1)',fontFamily:"'DM Mono',monospace"}},
+  return e('div',{style:{position:'fixed',top:'calc(20px + env(safe-area-inset-top, 0px))',right:'calc(20px + env(safe-area-inset-right, 0px))',zIndex:900,background:'#0a0e1a',border:'1px solid '+(d.shiftColor||'#4a9eff'),borderRadius:14,padding:'13px 17px',width:270,boxShadow:'0 0 24px '+(d.shiftColor||'#4a9eff')+'44',animation:'slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1)',fontFamily:"'DM Mono',monospace"}},
     e('div',{style:row({justifyContent:'space-between',marginBottom:9})},
       e('span',{style:mn(10,d.shiftColor||'#4a9eff',{fontWeight:700,letterSpacing:'0.15em'})},c2(d.action==='burn','◈ PURGE COMPLETE','◆ MATRIX UPDATED')),
       e('button',{onClick:props.onClose,style:{background:'transparent',border:'none',color:'#475569',cursor:'pointer',fontSize:16,lineHeight:1,padding:'0 2px'}},'×')
@@ -144,7 +144,7 @@ function XPToast(props) {
 function AchievementToast(props) {
   if (!props.data) return null;
   var d=props.data;
-  return e('div',{style:{position:'fixed',bottom:100,left:'50%',transform:'translateX(-50%)',zIndex:950,background:'#0a0e1a',border:'1px solid '+d.color,borderRadius:14,padding:'14px 20px',minWidth:260,maxWidth:320,boxShadow:'0 0 32px '+d.color+'55',animation:'slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1)',fontFamily:"'DM Mono',monospace",textAlign:'center',cursor:'pointer'},onClick:props.onClose},
+  return e('div',{style:{position:'fixed',bottom:'calc(100px + env(safe-area-inset-bottom, 0px))',left:'50%',transform:'translateX(-50%)',zIndex:950,background:'#0a0e1a',border:'1px solid '+d.color,borderRadius:14,padding:'14px 20px',minWidth:260,maxWidth:320,boxShadow:'0 0 32px '+d.color+'55',animation:'slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1)',fontFamily:"'DM Mono',monospace",textAlign:'center',cursor:'pointer'},onClick:props.onClose},
     e('div',{style:mn(9,d.color,{letterSpacing:'0.25em',marginBottom:6})},'◆ ACHIEVEMENT UNLOCKED'),
     e('div',{style:{fontSize:22,marginBottom:4}},d.icon),
     e('div',{style:{fontSize:13,fontWeight:700,color:'#e2e8f0',marginBottom:4}},d.title),
@@ -965,7 +965,7 @@ function Shell() {
     ),
 
     // Floating SOS button
-    e('button',{onClick:openUrge,title:'Urge Rescue — Emergency Protocol',style:{position:'fixed',bottom:82,right:14,zIndex:150,width:46,height:46,borderRadius:'50%',background:'rgba(13,17,23,0.92)',border:'1.5px solid rgba(239,68,68,0.5)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:1,cursor:'pointer',backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)',boxShadow:'0 0 0 0 rgba(239,68,68,0.4)',animation:'sos-pulse 2.8s ease-in-out infinite',transition:'border-color 0.2s,box-shadow 0.2s'},
+    e('button',{onClick:openUrge,title:'Urge Rescue — Emergency Protocol',style:{position:'fixed',bottom:'calc(82px + env(safe-area-inset-bottom, 0px))',right:'calc(14px + env(safe-area-inset-right, 0px))',zIndex:150,width:46,height:46,borderRadius:'50%',background:'rgba(13,17,23,0.92)',border:'1.5px solid rgba(239,68,68,0.5)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:1,cursor:'pointer',backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)',boxShadow:'0 0 0 0 rgba(239,68,68,0.4)',animation:'sos-pulse 2.8s ease-in-out infinite',transition:'border-color 0.2s,box-shadow 0.2s'},
       onMouseEnter:function(ev){ev.currentTarget.style.borderColor='rgba(239,68,68,0.9)';ev.currentTarget.style.boxShadow='0 0 18px rgba(239,68,68,0.4)';},
       onMouseLeave:function(ev){ev.currentTarget.style.borderColor='rgba(239,68,68,0.5)';ev.currentTarget.style.boxShadow='0 0 0 0 rgba(239,68,68,0.4)';}
     },

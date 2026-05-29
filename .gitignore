@@ -1,4 +1,10 @@
 node_modules/
 dist/
 .env
+.env.local
 .DS_Store
+
+# Capacitor native projects (generated — run `npx cap add ios` / `npx cap add android`)
+ios/
+android/
+.capacitor/

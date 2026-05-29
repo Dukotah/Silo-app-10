@@ -7,7 +7,8 @@ import React from 'react';
 var useState = React.useState;
 var useEffect = React.useEffect;
 var useRef = React.useRef;
-import { getStreakMult, clarityForEntry, FREE_JOURNAL_LIMIT } from './useCoreEngine.js';
+import { getStreakMult, clarityForEntry } from './useCoreEngine.js';
+import { FREE_JOURNAL_LIMIT } from './useVIP.js';
 import { parse } from './coreParser.js';
 
 var e = React.createElement;
