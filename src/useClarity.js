@@ -434,11 +434,23 @@ export function useClarity(coreState, isVIP) {
   function receiveXPBridge(xpCost, clarityAmount, signalObj) {
     var mult = signalObj ? signalObj.clarityMult : 1;
     var actualClarity = Math.round(clarityAmount * mult);
-    setState(function(prev) {
+    setClState(function(prev) {
       return Object.assign({}, prev, {
         clarity:     (prev.clarity     || 0) + actualClarity,
         totalEarned: (prev.totalEarned || 0) + actualClarity,
         lastSaved:   Date.now(),
+      });
+    });
+  }
+
+  // Direct Clarity grant — fuels the task/journal reward pipeline.
+  function addClarity(amount) {
+    var amt = Math.round(amount || 0);
+    if (amt <= 0) return;
+    setClState(function(prev) {
+      return Object.assign({}, prev, {
+        clarity:     (prev.clarity     || 0) + amt,
+        totalEarned: (prev.totalEarned || 0) + amt,
       });
     });
   }
@@ -476,6 +488,7 @@ export function useClarity(coreState, isVIP) {
     rollMarket:           rollMarket,
     activateJournalBoost: activateJournalBoost,
     receiveXPBridge,
+    addClarity:           addClarity,
     dismissOffline:       dismissOffline,
     resetClarity:         resetClarity,
     prestige:             prestige,

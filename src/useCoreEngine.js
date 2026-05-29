@@ -12,6 +12,15 @@ var useContext    = React.useContext;
 var SK  = 'silo_core_v4';  // bumped from v3 — triggers clean migration
 export var XPL = 300;
 
+// ─── STREAK MULTIPLIER ────────────────────────────────────────────────────────
+// Every active streak day adds +5% to XP & Clarity generation, capped at 30 days (+150%).
+export var STREAK_MULT_PER_DAY = 0.05;
+export var STREAK_MULT_CAP_DAYS = 30;
+export function getStreakMult(streak) {
+  var days = Math.min(Math.max(streak || 0, 0), STREAK_MULT_CAP_DAYS);
+  return 1 + days * STREAK_MULT_PER_DAY;
+}
+
 // ─── TIERS ────────────────────────────────────────────────────────────────────
 export var TIERS = [
   { min:1,  title:'Quiescent Matrix',   desc:'Dormant. Awaiting first signal.',               color:'#475569', glow:'rgba(71,85,105,0.5)'    },
@@ -98,6 +107,39 @@ export var ACHIEVEMENTS = [
   }},
 ];
 
+// ─── CLARITY REWARD HELPERS ───────────────────────────────────────────────────
+// Completing a task awards 10–25 Clarity scaled by difficulty (before streak mult).
+export function clarityForTask(task) {
+  var mult = (TASK_DIFFS[task.diff] || TASK_DIFFS[1]).mult; // 1.0 / 1.5 / 2.0
+  return Math.round(10 + (mult - 1) * 15); // 10 / 18 / 25
+}
+// A journal entry awards 15–40 Clarity scaled by word count (before streak mult).
+export function clarityForEntry(parseResult) {
+  var wc = (parseResult && parseResult.wordCount) || 0;
+  var t  = Math.min(wc, 250) / 250;
+  return Math.round(15 + t * 25); // 15..40
+}
+
+// ─── UNIFIED USER STATS ───────────────────────────────────────────────────────
+// Single read-only snapshot every module can render from. Clarity lives in its
+// own hook, so the live total is passed in by the shell.
+export function buildUserStats(coreState, clarityTotal) {
+  var s = coreState || {};
+  return {
+    xp:                  s.totalXP || 0,
+    level:               getLevelFromXP(s.totalXP || 0),
+    streak:              s.streak || 0,
+    streakMult:          getStreakMult(s.streak || 0),
+    totalClarity:        clarityTotal || 0,
+    bodyScore:           s.bodyScore || 0,
+    mindScore:           s.mindScore || 0,
+    soulScore:           s.soulScore || 0,
+    tasksCompletedToday: Object.keys(s.completedToday || {}).length,
+    journalEntriesTotal: (s.journalEntries || []).length,
+    lastActiveDate:      s.lastDate || null,
+  };
+}
+
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 export function getLevelFromXP(xp) { return Math.max(1, Math.floor((xp||0) / XPL) + 1); }
 export function getLvlXP(xp)       { return (xp||0) % XPL; }
@@ -148,6 +190,9 @@ function defaults() {
     completedDate:        null,
     completedWeekKey:     null,
     unlockedAchievements: [],
+    bodyScore:            0,
+    mindScore:            0,
+    soulScore:            0,
   };
 }
 
@@ -165,6 +210,18 @@ function hydrate() {
     }
     if (!merged.tasks || !merged.tasks.length) {
       merged.tasks = TASK_TEMPLATES.slice(0, 8);
+    }
+    // Backfill category scores from existing task history so the redesign
+    // doesn't wipe a returning user's Body/Mind/Soul identity.
+    if (parsed.bodyScore == null && parsed.mindScore == null && parsed.soulScore == null) {
+      var seed = { body:0, mind:0, soul:0 };
+      (merged.taskLog || []).forEach(function(l){ if (seed[l.cat] != null) seed[l.cat] += 5; });
+      (merged.journalEntries || []).forEach(function(j){
+        if (j.mood === 'CLEAR' || j.mood === 'REFLECTIVE') seed.soul += 8;
+      });
+      merged.bodyScore = seed.body;
+      merged.mindScore = seed.mind;
+      merged.soulScore = seed.soul;
     }
     return merged;
   } catch(x) { return defaults(); }
@@ -234,21 +291,32 @@ export function CoreProvider(props) {
       // Keep 60 days of weekly data
       var cutoff = new Date(); cutoff.setDate(cutoff.getDate()-60);
       Object.keys(weekly).forEach(function(k){ if(new Date(k)<cutoff) delete weekly[k]; });
+      var sMult     = getStreakMult(prev.streak||0);
+      var boostedXP = Math.round((parseResult.xp||0) * sMult);
+      // Sentiment → Soul score: only committed, positive/reflective entries count.
+      var tone =
+        parseResult.primaryShift === 'CLEAR'      ? 'positive'   :
+        parseResult.primaryShift === 'REFLECTIVE' ? 'reflective' :
+        parseResult.primaryShift === 'HEAVY'      ? 'heavy'      :
+        parseResult.primaryShift === 'HEAT'       ? 'turbulent'  : 'neutral';
+      var soulGain = (parseResult.action==='commit' && (tone==='positive' || tone==='reflective'))
+        ? Math.round(8 * sMult) : 0;
       var entry = {
         id: Date.now(), date: today,
         time: new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}),
         wordCount: parseResult.wordCount, charCount: parseResult.charCount,
         primaryShift: parseResult.primaryShift, shiftLabel: parseResult.shiftLabel,
-        shiftColor: parseResult.shiftColor, xp: parseResult.xp, action: parseResult.action,
+        shiftColor: parseResult.shiftColor, xp: boostedXP, action: parseResult.action,
       };
       var newLog     = [entry].concat((prev.log||[]).slice(0,99));
       var newJournal = parseResult.action==='commit'
-        ? [{ id:Date.now(), date:today, time:entry.time, text:parseResult.rawText||'', mood:parseResult.primaryShift, xp:parseResult.xp }]
+        ? [{ id:Date.now(), date:today, time:entry.time, text:parseResult.rawText||'', mood:parseResult.primaryShift, tone:tone, xp:boostedXP }]
             .concat((prev.journalEntries||[]).slice(0,199))
         : (prev.journalEntries||[]);
       var next = Object.assign({}, prev, {
-        totalXP: applyXP(prev, parseResult.xp),
+        totalXP: applyXP(prev, boostedXP),
         log: newLog, weeklyShifts: weekly, journalEntries: newJournal,
+        soulScore: (prev.soulScore||0) + soulGain,
         lastDate: today, streak: Math.max(prev.streak||0, 1),
       });
       next.unlockedAchievements = checkAchievements(next);
@@ -265,7 +333,11 @@ export function CoreProvider(props) {
                   : task.freq==='once'   ? 'completedOnce'
                   : 'completedToday';
       if ((prev[compKey]||{})[task.id]) return prev;
-      var xpAward = Math.round(task.xp * ((TASK_DIFFS[task.diff]||TASK_DIFFS[1]).mult));
+      var diffMult = (TASK_DIFFS[task.diff]||TASK_DIFFS[1]).mult;
+      var sMult    = getStreakMult(prev.streak||0);
+      var xpAward  = Math.round(task.xp * diffMult * sMult);
+      var scoreField = (task.cat==='body'||task.cat==='mind'||task.cat==='soul') ? task.cat+'Score' : null;
+      var scoreGain  = Math.round(5 * diffMult);
       var newComp = Object.assign({}, prev[compKey]||{}); newComp[task.id] = true;
       var compPatch = {}; compPatch[compKey] = newComp;
       if (task.freq==='weekly') compPatch.completedWeekKey = wk;
@@ -280,6 +352,7 @@ export function CoreProvider(props) {
         taskLog:  newTaskLog.slice(-2000),
         lastDate: today, streak: Math.max(prev.streak||0, 1),
       });
+      if (scoreField) next[scoreField] = (prev[scoreField]||0) + scoreGain;
       next.unlockedAchievements = checkAchievements(next);
       return next;
     });
