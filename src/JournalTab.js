@@ -224,7 +224,10 @@ export function JournalTab(props) {
 
   // State
   var s1 = useState('daily');           var activeMode = s1[0], setActiveMode = s1[1];
-  var s2 = useState('');                var text = s2[0], setText = s2[1];
+  // fix#8: separate text per journal mode
+var s2 = useState({}); var _modeTexts = s2[0], setModeTexts = s2[1];
+var text = _modeTexts[activeMode] || '';
+function setText(v) { setModeTexts(function(p){ var n=Object.assign({},p); n[activeMode]=typeof v==='function'?v(p[activeMode]||''):v; return n; }); }
   var s3 = useState(null);              var selectedMood = s3[0], setSelectedMood = s3[1];
   var s4 = useState(null);              var clarityLevel = s4[0], setClarityLevel = s4[1];
   var s5 = useState(false);             var burning = s5[0], setBurning = s5[1];
@@ -315,6 +318,8 @@ export function JournalTab(props) {
 
   function doBurn() {
     if (!canSubmit) return;
+    // fix#14: require confirmation before purging text
+    if (!window.confirm('Burn & Purge this entry? The text will be vaporized (you still earn XP). This cannot be undone.')) return;
     var r = parse(text, 'burn');
     var clr = Math.round(clarityForEntry(r) * getStreakMult(streak));
     r.clarityAwarded = clr;
@@ -365,7 +370,14 @@ export function JournalTab(props) {
           var unlocked = isModeUnlocked(mode.id), active = activeMode === mode.id;
           return e('button', {
             key:mode.id, className:'silo-mode-btn',
-            onClick:function(){ if (unlocked) setActiveMode(mode.id); },
+            onClick:function(){
+              if (unlocked) { setActiveMode(mode.id); } else {
+                // fix#7: toast for locked mode
+                var msg = 'Locked \u2014 unlock at ' + mode.unlockAt + '-day streak. You\u2019re on day ' + streak + '.';
+                setWarnMsg(msg);
+                setTimeout(function(){ setWarnMsg(null); }, 3500);
+              }
+            },
             title:unlocked ? mode.desc : 'Unlock at ' + mode.unlockAt + '-day streak',
             style:{ padding:'6px 12px', background:active?'#0d1a2e':'transparent', border:'1px solid '+(active?'#4a9eff66':unlocked?'#1e2a3a':'#0f1520'), borderRadius:8, fontSize:9, color:active?'#4a9eff':unlocked?'#475569':'#2d3748', fontFamily:"'DM Mono',monospace", letterSpacing:'0.1em', cursor:unlocked?'pointer':'not-allowed', transition:'all 0.15s', opacity:unlocked?1:0.4, display:'flex', alignItems:'center', gap:5 }
           },
@@ -443,6 +455,8 @@ export function JournalTab(props) {
         e('div', { style:{ position:'absolute', inset:0, zIndex:2, background:'linear-gradient(135deg,rgba(239,68,68,0.18),rgba(249,115,22,0.12))', pointerEvents:'none', opacity:burning?1:0, animation:burning?'burnGlow2 0.72s ease-out forwards':'none' } }),
         e('textarea', {
           ref:textareaRef, value:text, disabled:atLimit,
+                // fix#3: prevent autocomplete/IME double-insert
+                autoComplete:'off', autoCorrect:'off', autoCapitalize:'off', spellCheck:false,
           onChange:function(ev){ setText(ev.target.value); },
           onKeyDown:function(ev){ if ((ev.ctrlKey||ev.metaKey) && ev.key==='Enter') { ev.preventDefault(); doCommit(); } },
           placeholder:placeholder,
