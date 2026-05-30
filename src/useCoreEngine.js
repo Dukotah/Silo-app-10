@@ -385,6 +385,15 @@ export function CoreProvider(props) {
     setState(function(prev) { return Object.assign({}, prev, { totalXP: Math.max(0, (prev.totalXP||0) - amount) }); });
   }
 
+  function patchLatestJournalEntry(patch) {
+    setState(function(prev) {
+      if (!prev || !prev.journalEntries || !prev.journalEntries.length) return prev;
+      var updated = prev.journalEntries.slice();
+      updated[0] = Object.assign({}, updated[0], patch);
+      return Object.assign({}, prev, { journalEntries: updated });
+    });
+  }
+
   function dismissEvolution()  { setEvolution(null);      }
   function dismissAchievement(){ setNewAchievement(null); }
   function resetAll() { try { localStorage.removeItem(SK); } catch(x) {} setState(defaults()); }
@@ -393,8 +402,8 @@ export function CoreProvider(props) {
     value: {
       state, loaded, evolution, newAchievement,
       commitEntry, logTask, createTask, deleteTask,
-      spendXP,
-            dismissEvolution, dismissAchievement, resetAll,
+      spendXP, patchLatestJournalEntry,
+      dismissEvolution, dismissAchievement, resetAll,
       XPL,
     }
   }, props.children);

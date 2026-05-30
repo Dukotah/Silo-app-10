@@ -40,6 +40,7 @@ function detectClusters(history) {
   var clusters = [];
   var run = null;
   history.forEach(function(day) {
+    if (!day.state) { if (run && run.length >= 3) clusters.push(run); run = null; return; }
     var type = HEAVY_STATES[day.state] ? 'heavy' : 'strong';
     if (!run || run.type !== type) {
       if (run && run.length >= 3) clusters.push(run);

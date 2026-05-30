@@ -1027,6 +1027,7 @@ function Shell() {
   var s3=useState(false);   var showVIP=s3[0],setShowVIP=s3[1];
   var s4=useState(false);   var showUrge=s4[0],setShowUrge=s4[1];
   var s5=useState(false);   var edgeFlash=s5[0],setEdgeFlash=s5[1];
+  var s6=useState(false);   var showResetConfirm=s6[0],setShowResetConfirm=s6[1];
   var intelligence=useSignalIntelligence(signal.history, engine.state?engine.state.journalEntries:[], engine.state?engine.state.taskLog:[]);
   var clarity=useClarity(engine.state, vip.isVIP, intelligence.clarityMod);
   var signalXPMult=(signal.todayObj ? signal.todayObj.xpMult : 1) * (signal.todayObj ? 1 + skillBonuses.signalBoost : 1);
@@ -1117,6 +1118,17 @@ function Shell() {
     e('style',null,CSS),
     // Edge-flash overlay on level up
     edgeFlash && e('div',{style:{position:'fixed',inset:0,zIndex:9999,pointerEvents:'none',background:'radial-gradient(ellipse at center, '+tier.color+'22 0%, transparent 70%)',border:'2px solid '+tier.color+'66',animation:'edgeFlash 1.2s ease-out forwards'},key:'ef'}),
+    // Reset confirmation modal
+    showResetConfirm && e('div',{onClick:function(){setShowResetConfirm(false);},style:{position:'fixed',inset:0,zIndex:999,background:'rgba(0,0,0,0.88)',display:'flex',alignItems:'center',justifyContent:'center',padding:24}},
+      e('div',{onClick:function(ev){ev.stopPropagation();},style:{width:'100%',maxWidth:340,background:'#0a0e1a',border:'1px solid #1d2740',borderRadius:16,padding:'24px 22px',animation:'scaleIn 0.25s ease'}},
+        e('div',{style:mn(10,'#ef4444',{fontWeight:700,letterSpacing:'0.2em',marginBottom:10})},'⚠ RESET ALL DATA'),
+        e('div',{style:{fontSize:13,color:'#94a3b8',lineHeight:1.6,marginBottom:20}},'This permanently erases all XP, journal entries, tasks, Clarity, and progress. This cannot be undone.'),
+        e('div',{style:{display:'flex',gap:10}},
+          e('button',{onClick:function(){setShowResetConfirm(false);},style:{flex:1,padding:'12px',background:'transparent',border:'1px solid #1d2740',borderRadius:10,fontSize:11,color:'#475569',fontFamily:"'DM Mono',monospace",letterSpacing:'0.1em',cursor:'pointer'}},'CANCEL'),
+          e('button',{onClick:function(){engine.resetAll();setShowResetConfirm(false);},style:{flex:1,padding:'12px',background:'rgba(239,68,68,0.12)',border:'1px solid #ef444466',borderRadius:10,fontSize:11,color:'#ef4444',fontFamily:"'DM Mono',monospace",letterSpacing:'0.1em',fontWeight:700,cursor:'pointer'}},'RESET')
+        )
+      )
+    ),
     e(VIPModal,{open:showVIP,onClose:function(){setShowVIP(false);},onUpgrade:vip.upgrade,onRestore:vip.restorePurchases}),
     e(UrgeModal,{open:showUrge,onClose:function(){setShowUrge(false);},isVIP:vip.isVIP,canUse:urgeCanUse(),onNeedVIP:function(){setShowUrge(false);setShowVIP(true);},onMarkUsed:markUrgeUsed}),
       e(SignalCheckinModal,{show:showCheckin&&!signal.todayId,onSelect:function(s){signal.doCheckin(s);setShowCheckin(false);}}),
@@ -1155,7 +1167,7 @@ function Shell() {
           e('div',{style:{padding:'4px 9px',background:'#11151f',border:'1px solid #1d2740',borderRadius:7}},
             e('span',{style:mn(10,tier.color,{fontWeight:600})},'LV.'+level)
           ),
-          e('button',{onClick:function(){if(window.confirm('Reset all SILO data? This cannot be undone.'))engine.resetAll();},style:{width:30,height:30,background:'#11151f',border:'1px solid #1d2740',borderRadius:7,display:'flex',alignItems:'center',justifyContent:'center',color:'#2d3748',fontSize:13,minWidth:30}},'⚙')
+          e('button',{onClick:function(){setShowResetConfirm(true);},title:'Settings / Reset',style:{width:30,height:30,background:'#11151f',border:'1px solid #1d2740',borderRadius:7,display:'flex',alignItems:'center',justifyContent:'center',color:'#2d3748',fontSize:13,minWidth:30}},'⚙')
         )
       )
     ),

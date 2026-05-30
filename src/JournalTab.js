@@ -324,12 +324,7 @@ export function JournalTab(props) {
       // Store reflection in the most recent entry
       // (The engine has already stored the entry without reflection;
       //  we update it via a second commitEntry-style update — handled via a side-effect)
-      engine.setState && engine.setState(function(prev) {
-        if (!prev || !prev.journalEntries || !prev.journalEntries.length) return prev;
-        var updated = prev.journalEntries.slice();
-        updated[0] = Object.assign({}, updated[0], { reflection: reflection });
-        return Object.assign({}, prev, { journalEntries: updated });
-      });
+      engine.patchLatestJournalEntry && engine.patchLatestJournalEntry({ reflection: reflection });
     }, 800);
 
     if (textareaRef.current) textareaRef.current.focus();
