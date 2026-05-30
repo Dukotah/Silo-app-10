@@ -398,6 +398,16 @@ export function CoreProvider(props) {
     });
   }
 
+  function updateTask(taskId, patch) {
+    setState(function(prev) {
+      if (!prev) return prev;
+      var updated = (prev.tasks||[]).map(function(t) {
+        return t.id === taskId ? Object.assign({}, t, patch) : t;
+      });
+      return Object.assign({}, prev, { tasks: updated });
+    });
+  }
+
     function spendXP(amount) {
     setState(function(prev) { return Object.assign({}, prev, { totalXP: Math.max(0, (prev.totalXP||0) - amount) }); });
   }
@@ -418,7 +428,7 @@ export function CoreProvider(props) {
   return React.createElement(Ctx.Provider, {
     value: {
       state, loaded, evolution, newAchievement,
-      commitEntry, logTask, createTask, deleteTask,
+      commitEntry, logTask, createTask, deleteTask, updateTask,
       spendXP, patchLatestJournalEntry,
       dismissEvolution, dismissAchievement, resetAll,
       XPL,
