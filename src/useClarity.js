@@ -18,36 +18,36 @@ var useRef    = React.useRef;
 var CL_KEY      = 'silo_clarity_v1';
 var ECHO_KEY    = 'silo_echo_v1';
 var OFFLINE_CAP = 14400;
-var MARKET_COST = 500;
+var MARKET_COST = 2000;
 
 // --- GENERATORS --------------------------------------------------------------
 export var GENERATORS = [
-  { id:'focus',    name:'Focus Drone',      icon:'◇', rate:0.1,  baseCost:10,   costMult:1.15, maxCount:50, milestoneStreak:0,  vip:false, color:'#4a9eff', desc:'A quiet presence. Holds space while you drift. First signal in the void.' },
-  { id:'spark',    name:'Clarity Spark',    icon:'◈', rate:0.25, baseCost:25,   costMult:1.15, maxCount:40, milestoneStreak:0,  vip:false, color:'#06b6d4', desc:'Brief flashes of self-awareness. Ignites when you need it most.' },
-  { id:'signal',   name:'Signal Node',      icon:'◆', rate:0.5,  baseCost:50,   costMult:1.15, maxCount:30, milestoneStreak:3,  vip:false, color:'#22c55e', desc:'You showed up 3 days running. The node recognizes you.' },
-  { id:'weaver',   name:'Thought Weaver',   icon:'◉', rate:1.0,  baseCost:100,  costMult:1.17, maxCount:25, milestoneStreak:5,  vip:false, color:'#a78bfa', desc:'5 days in. Patterns are surfacing from the noise — and you can feel them.' },
-  { id:'resonance',name:'Resonance Core',   icon:'◉', rate:2.0,  baseCost:200,  costMult:1.18, maxCount:20, milestoneStreak:7,  vip:false, color:'#8b5cf6', desc:'One full week of signal. Deep attunement. Your frequency is stable.' },
-  { id:'pulse',    name:'Pulse Array',      icon:'⬡', rate:4.0,  baseCost:400,  costMult:1.19, maxCount:15, milestoneStreak:10, vip:false, color:'#fb923c', desc:'10 consecutive days. Synchronized thought cycles firing in rhythm.' },
-  { id:'cascade',  name:'Cascade Matrix',   icon:'⬡', rate:8.0,  baseCost:800,  costMult:1.20, maxCount:10, milestoneStreak:14, vip:false, color:'#f59e0b', desc:'Two weeks straight. Self-amplifying loops. Growth compounds itself.' },
-  { id:'lattice',  name:'Void Lattice',     icon:'◈', rate:15.0, baseCost:1500, costMult:1.22, maxCount:8,  milestoneStreak:21, vip:false, color:'#e11d48', desc:'21 days of presence. The subconscious is being rewritten at the root.' },
-  { id:'sovereign',name:'Sovereign Engine', icon:'◈', rate:25.0, baseCost:2500, costMult:1.25, maxCount:5,  milestoneStreak:30, vip:true,  color:'#e879a0', desc:'30 days. VIP only. Fully autonomous. You no longer seek clarity — you generate it.' },
+  { id:'focus',    name:'Focus Drone',      icon:'◇', rate:0.1,  baseCost:15,    costMult:1.20, maxCount:50, milestoneStreak:0,  vip:false, color:'#4a9eff', desc:'A quiet presence. Holds space while you drift. First signal in the void.' },
+  { id:'spark',    name:'Clarity Spark',    icon:'◈', rate:0.4,  baseCost:60,    costMult:1.22, maxCount:40, milestoneStreak:0,  vip:false, color:'#06b6d4', desc:'Brief flashes of self-awareness. Ignites when you need it most.' },
+  { id:'signal',   name:'Signal Node',      icon:'◆', rate:1.0,  baseCost:200,   costMult:1.25, maxCount:30, milestoneStreak:3,  vip:false, color:'#22c55e', desc:'You showed up 3 days running. The node recognizes you.' },
+  { id:'weaver',   name:'Thought Weaver',   icon:'◉', rate:2.5,  baseCost:700,   costMult:1.27, maxCount:25, milestoneStreak:5,  vip:false, color:'#a78bfa', desc:'5 days in. Patterns are surfacing from the noise — and you can feel them.' },
+  { id:'resonance',name:'Resonance Core',   icon:'◉', rate:6.0,  baseCost:2500,  costMult:1.29, maxCount:20, milestoneStreak:7,  vip:false, color:'#8b5cf6', desc:'One full week of signal. Deep attunement. Your frequency is stable.' },
+  { id:'pulse',    name:'Pulse Array',      icon:'⬡', rate:14.0, baseCost:10000, costMult:1.31, maxCount:15, milestoneStreak:10, vip:false, color:'#fb923c', desc:'10 consecutive days. Synchronized thought cycles firing in rhythm.' },
+  { id:'cascade',  name:'Cascade Matrix',   icon:'⬡', rate:30.0, baseCost:40000, costMult:1.33, maxCount:10, milestoneStreak:14, vip:false, color:'#f59e0b', desc:'Two weeks straight. Self-amplifying loops. Growth compounds itself.' },
+  { id:'lattice',  name:'Void Lattice',     icon:'◈', rate:70.0, baseCost:150000,costMult:1.36, maxCount:8,  milestoneStreak:21, vip:false, color:'#e11d48', desc:'21 days of presence. The subconscious is being rewritten at the root.' },
+  { id:'sovereign',name:'Sovereign Engine', icon:'◈', rate:150.0,baseCost:500000,costMult:1.42, maxCount:5,  milestoneStreak:30, vip:true,  color:'#e879a0', desc:'30 days. VIP only. Fully autonomous. You no longer seek clarity — you generate it.' },
 ];
 
 // --- TAP UPGRADES ------------------------------------------------------------
 export var TAP_UPGRADES = [
-  { level:1, cost:20,   tapBonus:1,  name:'Focus Spike',     icon:'▸',    desc:'+1 Clarity per tap. Your first act of intention.' },
-  { level:2, cost:80,   tapBonus:3,  name:'Signal Burst',    icon:'▸▸',   desc:'+3 Clarity per tap. Presence sharpening.' },
-  { level:3, cost:350,  tapBonus:10, name:'Resonance Surge', icon:'▶',    desc:'+10 Clarity per tap. Each strike carries weight.' },
-  { level:4, cost:1500, tapBonus:25, name:'Cascade Pulse',   icon:'▶▶',   desc:'+25 Clarity per tap. Force channeled, not wasted.' },
-  { level:5, cost:6000, tapBonus:60, name:'Apex Strike',     icon:'◆',    desc:'+60 Clarity per tap. Peak transmission. No hesitation.' },
+  { level:1, cost:50,    tapBonus:1,  name:'Focus Spike',     icon:'▸',    desc:'+1 Clarity per tap. Your first act of intention.' },
+  { level:2, cost:400,   tapBonus:3,  name:'Signal Burst',    icon:'▸▸',   desc:'+3 Clarity per tap. Presence sharpening.' },
+  { level:3, cost:3000,  tapBonus:10, name:'Resonance Surge', icon:'▶',    desc:'+10 Clarity per tap. Each strike carries weight.' },
+  { level:4, cost:25000, tapBonus:25, name:'Cascade Pulse',   icon:'▶▶',   desc:'+25 Clarity per tap. Force channeled, not wasted.' },
+  { level:5, cost:180000,tapBonus:60, name:'Apex Strike',     icon:'◆',    desc:'+60 Clarity per tap. Peak transmission. No hesitation.' },
 ];
 
 // --- SHOP ITEMS --------------------------------------------------------------
 export var SHOP_ITEMS = [
-  { id:'condenser', name:'Mind Condenser',   icon:'◇', cost:60,   maxCount:10, passiveBonus:0.05, color:'#4a9eff', desc:'Compresses scattered thought into output. All generators +5%. Up to 10× stacked (+50% total).' },
-  { id:'amplifier', name:'Signal Amplifier', icon:'◉', cost:400,  maxCount:5,  passiveBonus:0.20, color:'#22c55e', desc:'Raises the signal floor. All generators +20%. Up to 5× stacked (+100% total).' },
-  { id:'prism',     name:'Clarity Prism',    icon:'◈', cost:1800, maxCount:3,  passiveBonus:0.50, color:'#8b5cf6', desc:'Refracts your output into higher dimensions. All generators +50%. Up to 3× stacked (+150% total).' },
-  { id:'nexus',     name:'Resonance Nexus',  icon:'⬡', cost:8000, maxCount:1,  passiveBonus:1.00, color:'#f59e0b', desc:'A permanent doubling of all passive flow. One per run. The point of no return.' },
+  { id:'condenser', name:'Mind Condenser',   icon:'◇', cost:800,   maxCount:10, passiveBonus:0.05, color:'#4a9eff', desc:'Compresses scattered thought into output. All generators +5%. Up to 10× stacked (+50% total).' },
+  { id:'amplifier', name:'Signal Amplifier', icon:'◉', cost:5000,  maxCount:5,  passiveBonus:0.20, color:'#22c55e', desc:'Raises the signal floor. All generators +20%. Up to 5× stacked (+100% total).' },
+  { id:'prism',     name:'Clarity Prism',    icon:'◈', cost:35000, maxCount:3,  passiveBonus:0.50, color:'#8b5cf6', desc:'Refracts your output into higher dimensions. All generators +50%. Up to 3× stacked (+150% total).' },
+  { id:'nexus',     name:'Resonance Nexus',  icon:'⬡', cost:250000,maxCount:1,  passiveBonus:1.00, color:'#f59e0b', desc:'A permanent doubling of all passive flow. One per run. The point of no return.' },
 ];
 
 // --- ECHO PERKS --------------------------------------------------------------
@@ -97,12 +97,12 @@ export function fmtClarity(n) {
 }
 
 export function calcPrestigeEchoes(totalEarned) {
-  if (totalEarned < 10000) return 0;
-  return Math.max(1, Math.floor(Math.log10(totalEarned) - 3));
+  if (totalEarned < 500000) return 0;
+  return Math.max(1, Math.floor(Math.log10(totalEarned) - 4));
 }
 
 export function calcPrestigeThreshold(runCount) {
-  return Math.floor(10000 * Math.pow(3, runCount || 0));
+  return Math.floor(500000 * Math.pow(3, runCount || 0));
 }
 
 export function calcEchoMult(echoPerks) {
