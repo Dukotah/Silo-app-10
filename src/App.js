@@ -1096,7 +1096,7 @@ function Shell() {
       var txp=engine.state.totalXP||0;
       if(txp>=bridgeCostXP){
         clarity.receiveXPBridge(bridgeCostXP, bridgeClarity, signal.todayObj);
-        try{var sk=localStorage.getItem('silo_core_v4');var cd=sk?JSON.parse(sk):{};cd.totalXP=Math.max(0,(cd.totalXP||0)-bridgeCostXP);localStorage.setItem('silo_core_v4',JSON.stringify(cd));window.dispatchEvent(new Event('storage'));}catch(ex){}
+        engine.spendXP(bridgeCostXP);
       }
     },
   });
