@@ -18,11 +18,14 @@ import { useClarity, fmtClarity } from './useClarity.js';
 import { useSignalCheckin, SignalCheckinModal, EvolutionRevealModal, XPBridgeWidget, SignalPulse, XP_BRIDGE_RATE, XP_BRIDGE_CLARITY } from './SignalCheckin.js';
 import { JournalTab } from './JournalTab.js';
 import { useSkillTree, computeSkillBonuses } from './useSkillTree.js';
+import { useSignalIntelligence } from './useSignalIntelligence.js';
+import { SignalWeather } from './SignalWeather.js';
 
 var e         = React.createElement;
 var useState  = React.useState;
 var useEffect = React.useEffect;
 var useRef    = React.useRef;
+var useMemo   = React.useMemo;
 function cond(test, el) { return test ? el : null; }
 function c2(test, a, b) { return test ? a : b; }
 
@@ -41,7 +44,9 @@ var CSS =
   "@keyframes slideRight{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:translateX(0)}}" +
   "@keyframes burnOut{0%{opacity:1;transform:scale(1);filter:blur(0)}100%{opacity:0;transform:scale(0.95);filter:blur(6px)}}" +
   "@keyframes burnGlow{0%,100%{opacity:0}50%{opacity:1}}" +
-  "@keyframes checkPop{0%{transform:scale(0)}60%{transform:scale(1.3)}100%{transform:scale(1)}}";
+  "@keyframes checkPop{0%{transform:scale(0)}60%{transform:scale(1.3)}100%{transform:scale(1)}}" +
+  "@keyframes edgeFlash{0%{opacity:0}15%{opacity:1}100%{opacity:0}}" +
+  "@keyframes tremorPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.016)}}";
 
 // ─── STYLE HELPERS ────────────────────────────────────────────────────────────
 function mn(sz,cl,x) { return Object.assign({fontFamily:"'DM Mono',monospace",fontSize:sz,color:cl,letterSpacing:'0.08em'},x||{}); }
@@ -74,21 +79,23 @@ function StatBar(props) {
 // ─── CORE ENTITY SVG ──────────────────────────────────────────────────────────
 function CoreEntity(props) {
   var lv=props.level, t=props.tier, pct=props.xpPct, isVIP=props.isVIP||false, kids=[];
+  var nearLevelUp=props.nearLevelUp||false, withinFive=props.withinFive||false;
   var accent=props.focus||t.color;
   var arcR=44, arcC=2*Math.PI*arcR, off=arcC*(1-Math.min(pct,100)/100);
+  var pulseSpeed = withinFive ? 0.38 : nearLevelUp ? 0.62 : 1;
   // VIP: extra slow outer resonance rings
   if (isVIP) {
     kids.push(e('circle',{key:'vip0',cx:'100',cy:'100',r:'88',fill:'none',stroke:t.color,strokeWidth:'0.5',opacity:0.08,style:{animation:'pulse 4.5s ease-in-out 0s infinite'}}));
     kids.push(e('circle',{key:'vip1',cx:'100',cy:'100',r:'96',fill:'none',stroke:accent,strokeWidth:'0.4',opacity:0.06,style:{animation:'pulse 6s ease-in-out 1.2s infinite'}}));
   }
   for (var ri=0;ri<Math.min(lv,6);ri++) {
-    kids.push(e('circle',{key:'r'+ri,cx:'100',cy:'100',r:String(52+ri*15),fill:'none',stroke:t.color,strokeWidth:'0.7',opacity:Math.max(0.03,0.1-ri*0.015),style:{animation:'pulse '+(2.2+ri*0.7)+'s ease-in-out '+(ri*0.35)+'s infinite'}}));
+    kids.push(e('circle',{key:'r'+ri,cx:'100',cy:'100',r:String(52+ri*15),fill:'none',stroke:t.color,strokeWidth:'0.7',opacity:Math.max(0.03,0.1-ri*0.015),style:{animation:'pulse '+((2.2+ri*0.7)*pulseSpeed).toFixed(2)+'s ease-in-out '+(ri*0.35*pulseSpeed).toFixed(2)+'s infinite'}}));
   }
   kids.push(e('circle',{key:'track',cx:'100',cy:'100',r:String(arcR),fill:'none',stroke:t.color,strokeWidth:'2',opacity:0.1}));
   kids.push(e('circle',{key:'arc',cx:'100',cy:'100',r:String(arcR),fill:'none',stroke:t.color,strokeWidth:'3',opacity:0.85,strokeDasharray:String(arcC.toFixed(1)),strokeDashoffset:String(off.toFixed(1)),strokeLinecap:'round',style:{transform:'rotate(-90deg)',transformOrigin:'100px 100px',transition:'stroke-dashoffset 1s ease'}}));
   kids.push(e('circle',{key:'b0',cx:'100',cy:'100',r:'28',fill:t.color,opacity:0.07}));
-  kids.push(e('circle',{key:'b1',cx:'100',cy:'100',r:'18',fill:t.color,opacity:0.15,style:{animation:'pulse 2s ease-in-out infinite'}}));
-  kids.push(e('circle',{key:'b2',cx:'100',cy:'100',r:'8',fill:t.color,opacity:0.9,style:{animation:'pulse 1.5s ease-in-out infinite'}}));
+  kids.push(e('circle',{key:'b1',cx:'100',cy:'100',r:'18',fill:t.color,opacity:0.15,style:{animation:'pulse '+(2*pulseSpeed).toFixed(2)+'s ease-in-out infinite'}}));
+  kids.push(e('circle',{key:'b2',cx:'100',cy:'100',r:'8',fill:t.color,opacity:0.9,style:{animation:'pulse '+(1.5*pulseSpeed).toFixed(2)+'s ease-in-out infinite'}}));
   var spokes=Math.min(lv*2,12);
   for (var si=0;si<spokes;si++) {
     var ang=(si/spokes)*Math.PI*2;
@@ -100,7 +107,7 @@ function CoreEntity(props) {
     var orbs=Math.min(lv-2,8);
     for (var oi=0;oi<orbs;oi++) {
       var oa=(oi/orbs)*Math.PI*2, ox=100+Math.cos(oa)*38, oy=100+Math.sin(oa)*38;
-      kids.push(e('circle',{key:'o'+oi,cx:ox.toFixed(1),cy:oy.toFixed(1),r:isVIP?'4':'3',fill:accent,opacity:isVIP?0.8:0.6,style:{animation:'pulse '+(1.5+oi*0.25)+'s ease-in-out '+(oi*0.18)+'s infinite',transition:'fill 1.2s ease'}}));
+      kids.push(e('circle',{key:'o'+oi,cx:ox.toFixed(1),cy:oy.toFixed(1),r:isVIP?'4':'3',fill:accent,opacity:isVIP?0.8:0.6,style:{animation:'pulse '+((1.5+oi*0.25)*pulseSpeed).toFixed(2)+'s ease-in-out '+(oi*0.18*pulseSpeed).toFixed(2)+'s infinite',transition:'fill 1.2s ease'}}));
     }
   }
   // VIP: second rotating accent ring at 60deg offset
@@ -109,8 +116,10 @@ function CoreEntity(props) {
     kids.push(e('circle',{key:'arc2',cx:'100',cy:'100',r:String(arcR2),fill:'none',stroke:accent,strokeWidth:'1.5',opacity:0.35,strokeDasharray:String(arcC2.toFixed(1)),strokeDashoffset:String(off2.toFixed(1)),strokeLinecap:'round',style:{transform:'rotate(60deg)',transformOrigin:'100px 100px'}}));
   }
   kids.push(e('text',{key:'lv',x:'100',y:'105',textAnchor:'middle',fontFamily:"'DM Mono',monospace",fontSize:'13',fontWeight:'700',fill:t.color,opacity:0.9},String(lv)));
-  var glowStr=isVIP?(18+Math.min(lv,12)*4):(12+Math.min(lv,12)*3);
-  return e('svg',{viewBox:'0 0 200 200',xmlns:'http://www.w3.org/2000/svg',style:{width:'100%',maxWidth:props.size||200,filter:'drop-shadow(0 0 '+glowStr+'px '+t.glow+')',transition:'filter 1.2s ease'}},kids);
+  var glowBase=isVIP?(18+Math.min(lv,12)*4):(12+Math.min(lv,12)*3);
+  var glowStr = nearLevelUp ? glowBase * 1.6 : glowBase;
+  var tremorAnim = nearLevelUp ? 'tremorPulse '+(withinFive?0.5:0.85)+'s ease-in-out infinite' : 'none';
+  return e('svg',{viewBox:'0 0 200 200',xmlns:'http://www.w3.org/2000/svg',style:{width:'100%',maxWidth:props.size||200,filter:'drop-shadow(0 0 '+glowStr.toFixed(0)+'px '+t.glow+')',transition:'filter 1.2s ease',animation:tremorAnim}},kids);
 }
 
 // ─── EVOLUTION MODAL ──────────────────────────────────────────────────────────
@@ -420,6 +429,7 @@ var SIGNAL_COLORS={flat:'#475569',flickering:'#f97316',steady:'#4a9eff',strong:'
 function SignalAnalytics(props) {
   var entries=props.entries||[], taskLog=props.taskLog||[], signalHistory=props.signalHistory||[];
   var skillBonuses=props.skillBonuses||{taskXPMult:1,journalXPMult:1};
+  var weatherGrid=props.weatherGrid||[];
 
   // Last 7 journal entries — mood dots
   var recentEntries=entries.slice(0,7);
@@ -438,6 +448,9 @@ function SignalAnalytics(props) {
       e('span',{style:mn(9,'#8b5cf6',{fontWeight:700})},'◈ VIP')
     ),
     e('div',{style:{padding:'14px'}},
+
+      // 30-day terrain grid
+      weatherGrid.length>0 && e(SignalWeather, { grid:weatherGrid }),
 
       // Mood history — last 7 entries
       recentEntries.length>0 && e('div',{style:{marginBottom:14}},
@@ -497,6 +510,29 @@ function SignalAnalytics(props) {
   );
 }
 
+// ─── PATTERN ALERT CARD ───────────────────────────────────────────────────────
+var ALERT_COLORS = { critical:'#ef4444', warning:'#f97316', positive:'#22c55e', insight:'#4a9eff' };
+function PatternAlertCard(props) {
+  var alert    = props.alert;
+  var onAction = props.onAction || function(){};
+  if (!alert) return null;
+  var col = ALERT_COLORS[alert.severity] || '#475569';
+  return e('div', { style:Object.assign({}, card, { borderColor:col+'55', marginBottom:12 }) },
+    e('div', { style:Object.assign({}, cardH, { borderBottomColor:col+'22' }) },
+      e('span', { style:mn(9,col,{fontWeight:700}) }, '◈ PATTERN ALERT'),
+      e('span', { style:mn(8,col,{opacity:0.7,letterSpacing:'0.15em'}) }, alert.severity.toUpperCase())
+    ),
+    e('div', { style:{ padding:'12px 15px' } },
+      e('div', { style:{ fontSize:13, fontWeight:700, color:'#e2e8f0', marginBottom:6, fontFamily:"'DM Mono',monospace" } }, alert.title),
+      e('div', { style:{ fontSize:11, color:'#94a3b8', lineHeight:1.6, marginBottom: alert.action ? 10 : 0 } }, alert.body),
+      alert.action && e('button', {
+        onClick: function() { onAction(alert.action); },
+        style:{ padding:'7px 14px', background:col+'18', border:'1px solid '+col+'55', borderRadius:8, fontSize:9, color:col, fontFamily:"'DM Mono',monospace", fontWeight:700, letterSpacing:'0.12em', cursor:'pointer' }
+      }, alert.action === 'OPEN_JOURNAL' ? 'OPEN JOURNAL' : 'OPEN TASKS')
+    )
+  );
+}
+
 // ─── HOME TAB ─────────────────────────────────────────────────────────────────
 function HomeTab(props) {
   var s=props.state, engine=props.engine;
@@ -507,6 +543,10 @@ function HomeTab(props) {
   var clarityRate=props.clarityRate||0;
   var signalHistory=props.signalHistory||[];
   var skillBonuses=props.skillBonuses||{taskXPMult:1,journalXPMult:1};
+  var intelligence=props.intelligence||null;
+  var nearLevelUp=props.nearLevelUp||false;
+  var withinFive=props.withinFive||false;
+  var onNavigate=props.onNavigate||function(){};
   var level=getLevelFromXP(s.totalXP||0), lvlXP=getLvlXP(s.totalXP||0);
   var pct=Math.round((lvlXP/props.XPL)*100), tier=getTier(level);
   var stats={body:s.bodyScore||0,mind:s.mindScore||0,soul:s.soulScore||0};
@@ -532,7 +572,6 @@ function HomeTab(props) {
   var weekTarget=500+level*100;
   var weekPct=Math.min(Math.round((weekXP/weekTarget)*100),100);
   var daysLeft=7-((new Date().getDay()+6)%7);
-  var onNavigate=props.onNavigate||function(){};
   var todayKey2=new Date().toISOString().slice(0,10);
   var dailyTasks=(s.tasks||[]).filter(function(t){return t.freq==='daily';});
   var dailyLeft=dailyTasks.length-dailyTasks.filter(function(t){return (s.completedToday||{})[t.id];}).length;
@@ -547,6 +586,9 @@ function HomeTab(props) {
   return e('div',{style:{display:'flex',flexDirection:'column',animation:'fadeUp 0.35s ease'}},
     e(AchievementsModal,{open:showAch,onClose:function(){setShowAch(false);},unlocked:unlocked}),
 
+    // Pattern Alert — highest-priority actionable insight
+    intelligence && e(PatternAlertCard,{ alert:intelligence.activeAlert, onAction:function(action){onNavigate(action==='OPEN_JOURNAL'?'JOURNAL':'TASKS');} }),
+
     // Core Entity hero
     e('div',{style:Object.assign({},card,{background:'linear-gradient(145deg,#0a0e1a,#0d1220)'})},
       e('div',{style:cardH},
@@ -554,7 +596,7 @@ function HomeTab(props) {
         e('span',{style:mn(9,tier.color,{fontWeight:700})},tier.title.toUpperCase())
       ),
       e('div',{style:{padding:'20px 16px',display:'flex',alignItems:'center',gap:16}},
-        e('div',{style:{width:160,flexShrink:0}},e(CoreEntity,{level:level,tier:tier,xpPct:pct,focus:focusColor,isVIP:isVIP})),
+        e('div',{style:{width:160,flexShrink:0}},e(CoreEntity,{level:level,tier:tier,xpPct:pct,focus:focusColor,isVIP:isVIP,nearLevelUp:nearLevelUp,withinFive:withinFive})),
         e('div',{style:{flex:1,minWidth:0}},
           e('div',{style:{fontSize:17,fontWeight:700,color:'#e2e8f0',marginBottom:3,fontFamily:"'DM Mono',monospace"}},'Level '+level),
           cond(focusKey&&isVIP,
@@ -715,7 +757,7 @@ function HomeTab(props) {
 
     // Signal analytics — VIP only
     isVIP
-      ? e(SignalAnalytics,{entries:s.journalEntries||[],taskLog:s.taskLog||[],signalHistory:signalHistory,skillBonuses:skillBonuses})
+      ? e(SignalAnalytics,{entries:s.journalEntries||[],taskLog:s.taskLog||[],signalHistory:signalHistory,skillBonuses:skillBonuses,weatherGrid:intelligence&&intelligence.weatherGrid||[]})
       : e('div',{onClick:onNeedVIP,style:Object.assign({},card,{cursor:'pointer',border:'1px solid #8b5cf622'})},
           e('div',{style:{padding:'16px',display:'flex',alignItems:'center',gap:12}},
             e('div',{style:{fontSize:22,opacity:0.4}},'◇'),
@@ -984,7 +1026,9 @@ function Shell() {
   var s2=useState(false);   var offline=s2[0],setOffline=s2[1];
   var s3=useState(false);   var showVIP=s3[0],setShowVIP=s3[1];
   var s4=useState(false);   var showUrge=s4[0],setShowUrge=s4[1];
-  var clarity=useClarity(engine.state, vip.isVIP);
+  var s5=useState(false);   var edgeFlash=s5[0],setEdgeFlash=s5[1];
+  var intelligence=useSignalIntelligence(signal.history, engine.state?engine.state.journalEntries:[], engine.state?engine.state.taskLog:[]);
+  var clarity=useClarity(engine.state, vip.isVIP, intelligence.clarityMod);
   var signalXPMult=(signal.todayObj ? signal.todayObj.xpMult : 1) * (signal.todayObj ? 1 + skillBonuses.signalBoost : 1);
   function urgeCanUse(){return vip.isVIP||(Date.now()-getUrgeLastUsed()>skillBonuses.urgeCooldownMs);}
   function openUrge(){setShowUrge(true);}
@@ -1005,6 +1049,24 @@ function Shell() {
   var xp=state?(state.totalXP||0):0;
   var streak=state?(state.streak||0):0;
 
+  // Threshold tremor
+  var lvlXPShell=state?getLvlXP(state.totalXP||0):0;
+  var xpToNext=engine.XPL-lvlXPShell;
+  var nearLevelUp=xpToNext<=15&&level<24;
+  var withinFive=xpToNext<=5&&level<24;
+
+  // Temporal presence
+  var timeOfDay=useMemo(function(){var h=new Date().getHours();if(h>=5&&h<9)return 'morning';if(h>=21||h<4)return 'night';return 'day';},[]);
+  var temporalConfigs={morning:{bg:'#0f0e14',title:'MORNING PROTOCOL'},night:{bg:'#08090f',title:'DEEP SIGNAL'},day:{bg:'#0d1117',title:'SILO'}};
+  var temporalConfig=temporalConfigs[timeOfDay];
+
+  // Edge flash on level-up
+  var levelRef=useRef(level);
+  useEffect(function(){
+    if(level>levelRef.current){setEdgeFlash(true);setTimeout(function(){setEdgeFlash(false);},1200);}
+    levelRef.current=level;
+  },[level]);
+
   if (!loaded) {
     return e('div',{style:{minHeight:'100vh',background:'#0d1117',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:16}},
       e('style',null,CSS),
@@ -1024,6 +1086,9 @@ function Shell() {
     signalObj:signal.todayObj, signalHistory:signal.history,
     clarityRate:clarity.passiveRate, clarityTotal:clarity.clarity,
     skillBonuses:skillBonuses,
+    intelligence:intelligence,
+    nearLevelUp:nearLevelUp,
+    withinFive:withinFive,
     onBridgeXP:function(){
       var txp=engine.state.totalXP||0;
       if(txp>=bridgeCostXP){
@@ -1048,8 +1113,10 @@ function Shell() {
   });
   else pageContent=e(ClarityTab, {state:state,engine:engine,clarity:clarity,isVIP:vip.isVIP,onNeedVIP:function(){setShowVIP(true);}});
 
-  return e('div',{style:{minHeight:'100vh',background:'#0d1117',color:'#e2e8f0',fontFamily:"'DM Sans',sans-serif"}},
+  return e('div',{style:{minHeight:'100vh',background:temporalConfig.bg,color:'#e2e8f0',fontFamily:"'DM Sans',sans-serif",transition:'background 3s ease'}},
     e('style',null,CSS),
+    // Edge-flash overlay on level up
+    edgeFlash && e('div',{style:{position:'fixed',inset:0,zIndex:9999,pointerEvents:'none',background:'radial-gradient(ellipse at center, '+tier.color+'22 0%, transparent 70%)',border:'2px solid '+tier.color+'66',animation:'edgeFlash 1.2s ease-out forwards'},key:'ef'}),
     e(VIPModal,{open:showVIP,onClose:function(){setShowVIP(false);},onUpgrade:vip.upgrade,onRestore:vip.restorePurchases}),
     e(UrgeModal,{open:showUrge,onClose:function(){setShowUrge(false);},isVIP:vip.isVIP,canUse:urgeCanUse(),onNeedVIP:function(){setShowUrge(false);setShowVIP(true);},onMarkUsed:markUrgeUsed}),
       e(SignalCheckinModal,{show:showCheckin&&!signal.todayId,onSelect:function(s){signal.doCheckin(s);setShowCheckin(false);}}),
@@ -1069,7 +1136,7 @@ function Shell() {
           e('div',{style:{width:26,height:26,background:'rgba(74,158,255,0.07)',border:'1px solid '+tier.color+'33',borderRadius:7,display:'flex',alignItems:'center',justifyContent:'center'}},
             e('div',{style:{width:6,height:6,borderRadius:'50%',background:tier.color,animation:'pulse 2s ease-in-out infinite'}})
           ),
-          e('span',{style:mn(14,'#e2e8f0',{fontWeight:700,letterSpacing:'0.18em'})},'SILO'),
+          e('span',{style:mn(14,'#e2e8f0',{fontWeight:700,letterSpacing:'0.18em'})},temporalConfig.title),
           vip.isVIP && e('span',{style:{fontSize:8,fontFamily:"'DM Mono',monospace",color:'#8b5cf6',fontWeight:700,letterSpacing:'0.15em',marginLeft:4}},'VIP'),
           e(SignalPulse,{signalObj:signal.todayObj,onClick:function(){setShowCheckin(true);}})
         ),

@@ -270,12 +270,19 @@ export function CoreProvider(props) {
     return unlocked;
   }
 
-  // XP helper — also fires evolution event
+  // XP helper — fires evolution event on tier change, level-up event on level change
   function applyXP(prev, amt) {
-    var nx  = (prev.totalXP||0) + amt;
-    var old = getTier(getLevelFromXP(prev.totalXP||0));
-    var nw  = getTier(getLevelFromXP(nx));
+    var nx       = (prev.totalXP||0) + amt;
+    var oldLevel = getLevelFromXP(prev.totalXP||0);
+    var newLevel = getLevelFromXP(nx);
+    var old = getTier(oldLevel);
+    var nw  = getTier(newLevel);
     if (nw.title !== old.title) setTimeout(function(){ setEvolution(nw); }, 250);
+    if (newLevel > oldLevel) {
+      setTimeout(function() {
+        try { window.dispatchEvent(new CustomEvent('silo_level_up', { detail:{ level:newLevel } })); } catch(x) {}
+      }, 200);
+    }
     return nx;
   }
 

@@ -69,13 +69,14 @@ export function genMilestoneMult(owned) {
   return m;
 }
 
-export function calcPassiveRate(counts, boosted, shopMult, echoMult) {
+export function calcPassiveRate(counts, boosted, shopMult, echoMult, signalMod) {
   var rate = GENERATORS.reduce(function(sum, gen) {
     var owned = (counts && counts[gen.id]) || 0;
     return sum + gen.rate * owned * genMilestoneMult(owned);
   }, 0);
   rate = rate * (shopMult || 1) * (echoMult || 1);
-  return boosted ? rate * 2 : rate;
+  var mod = Math.min(Math.max(signalMod || 1, 0.3), 1.8);
+  return (boosted ? rate * 2 : rate) * mod;
 }
 
 export function calcShopMult(shopCounts) {
@@ -164,8 +165,10 @@ function saveEchoState(st) {
 }
 
 // --- HOOK --------------------------------------------------------------------
-export function useClarity(coreState, isVIP) {
+export function useClarity(coreState, isVIP, clarityMod) {
   var streak = (coreState && coreState.streak) || 0;
+  var clarityModRef = useRef(clarityMod || 1);
+  useEffect(function() { clarityModRef.current = clarityMod || 1; }, [clarityMod]);
 
   var s1 = useState(function() {
     var st = loadState();
@@ -174,7 +177,7 @@ export function useClarity(coreState, isVIP) {
     if (elapsed > 5) {
       var boosted = now < (st.journalBoostEnd || 0);
       var sMult   = calcShopMult(st.shopCounts);
-      var rate    = calcPassiveRate(st.counts, boosted, sMult, 1);
+      var rate    = calcPassiveRate(st.counts, boosted, sMult, 1, clarityMod || 1);
       var earned  = rate * elapsed;
       st.clarity      = (st.clarity || 0) + earned;
       st.totalEarned  = (st.totalEarned || 0) + earned;
@@ -237,7 +240,7 @@ export function useClarity(coreState, isVIP) {
 
         var boosted = now < (prev.journalBoostEnd || 0);
         var eMult   = calcEchoMult(echoPerksRef.current);
-        var rate    = calcPassiveRate(prev.counts, boosted, calcShopMult(prev.shopCounts), eMult);
+        var rate    = calcPassiveRate(prev.counts, boosted, calcShopMult(prev.shopCounts), eMult, clarityModRef.current);
         newC  += rate;
         newTE += rate;
 
@@ -251,7 +254,7 @@ export function useClarity(coreState, isVIP) {
   var boosted       = Date.now() < (clState.journalBoostEnd || 0);
   var shopMult      = calcShopMult(clState.shopCounts);
   var echoMult      = calcEchoMult(echoState.echoPerks);
-  var passiveRate   = calcPassiveRate(clState.counts, boosted, shopMult, echoMult);
+  var passiveRate   = calcPassiveRate(clState.counts, boosted, shopMult, echoMult, clarityMod || 1);
   var tapBonusTotal = TAP_UPGRADES.slice(0, clState.tapLevel || 0).reduce(function(s,u){return s+u.tapBonus;},0);
   var tapPower      = Math.max(1, streak) + tapBonusTotal;
 

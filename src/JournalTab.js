@@ -7,9 +7,11 @@ import React from 'react';
 var useState = React.useState;
 var useEffect = React.useEffect;
 var useRef = React.useRef;
+var useMemo = React.useMemo;
 import { getStreakMult, clarityForEntry } from './useCoreEngine.js';
 import { FREE_JOURNAL_LIMIT } from './useVIP.js';
 import { parse } from './coreParser.js';
+import { findPatternEcho } from './useSignalIntelligence.js';
 
 var e = React.createElement;
 
@@ -266,6 +268,23 @@ export function JournalTab(props) {
   var activeModeData = JOURNAL_MODES.find(function(m) { return m.id === activeMode; }) || JOURNAL_MODES[0];
   var moodObj = selectedMood ? MOODS.find(function(m) { return m.id === selectedMood; }) : null;
 
+  // Signal Ink — border bleeds the emotional frequency of your current text
+  var signalInkColor = useMemo(function() {
+    if (text.length < 40) return '#1d2740';
+    var r = parse(text.slice(0, 200), 'commit');
+    var cols = { HEAVY:'#f97316', HEAT:'#ef4444', CLEAR:'#22c55e', REFLECTIVE:'#4a9eff' };
+    return cols[r.primaryShift] || '#1d2740';
+  }, [Math.floor(text.length / 20)]);
+
+  // Pattern Echo — surface a past sentence with matching emotional signature
+  var patternEcho = useMemo(function() {
+    if (text.length < 40) return null;
+    var r = parse(text.slice(0, 200), 'commit');
+    var mood = r.primaryShift;
+    if (!mood || mood === 'AMBIENT') return null;
+    return findPatternEcho(mood, entries);
+  }, [Math.floor(text.length / 20), entries.length]);
+
   function doCommit() {
     if (!canSubmit) return;
     if (atLimit) { onNeedVIP(); return; }
@@ -428,7 +447,7 @@ export function JournalTab(props) {
     ),
 
     // ── VENT CANVAS ──
-    e('div', { style:card },
+    e('div', { style:Object.assign({}, card, { border:'1px solid '+ signalInkColor, boxShadow: signalInkColor !== '#1d2740' ? '0 0 18px ' + signalInkColor + '22' : 'none', transition:'border-color 2.5s ease, box-shadow 2.5s ease' }) },
       e('div', { style:cardH },
         e('span', { style:mn(9,'#94a3b8',{fontWeight:700}) }, activeModeData.label),
         e('div', { style:row({gap:8}) },
@@ -454,6 +473,10 @@ export function JournalTab(props) {
         })
       ),
       warnMsg && e('div', { style:{ margin:'0 16px 8px', padding:'8px 12px', background:'rgba(239,68,68,0.07)', border:'1px solid rgba(239,68,68,0.25)', borderRadius:8, fontSize:10, color:'#ef4444', fontFamily:"'DM Mono',monospace", letterSpacing:'0.06em', lineHeight:1.4 } }, '⚠ ' + warnMsg),
+      patternEcho && e('div', { style:{ margin:'0 16px 8px', padding:'10px 14px', background:'rgba(167,139,250,0.06)', border:'1px solid rgba(167,139,250,0.2)', borderRadius:10, animation:'siloSlideIn 0.4s ease' } },
+        e('div', { style:{ fontFamily:"'DM Mono',monospace", fontSize:7, color:'#a78bfa', letterSpacing:'0.2em', marginBottom:6 } }, '◈ ECHO FROM ' + patternEcho.date),
+        e('div', { style:{ fontSize:12, color:'#a78bfa', lineHeight:1.7, fontFamily:"'DM Sans',sans-serif", fontStyle:'italic', opacity:0.85 } }, '"' + patternEcho.text + '"')
+      ),
       e('div', { style:{ padding:'6px 18px 10px', display:'flex', justifyContent:'space-between', alignItems:'center' } },
         e('span', { style:mn(8,'#1e2a3a') }, text.length + ' CHARS · CTRL+ENTER TO COMMIT'),
         aiLoading && e('span', { style:mn(8,'#4a9eff',{animation:'siloPulse 1.5s ease infinite'}) }, '◈ REFLECTING...')
