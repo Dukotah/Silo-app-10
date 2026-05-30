@@ -355,19 +355,24 @@ export function ClarityTab(props) {
   var critTimer  = useRef(null);
 
   function doTap() {
-    var result = cl.tap();
+    // Trigger animation immediately so the tap feels instant (keeps INP fast)
     setTapping(true);
     if (tapTimer.current) clearTimeout(tapTimer.current);
     tapTimer.current = setTimeout(function(){ setTapping(false); }, 220);
-    if (result.isCrit) {
-      setIsCrit(true);
-      if (critTimer.current) clearTimeout(critTimer.current);
-      critTimer.current = setTimeout(function(){ setIsCrit(false); }, 450);
-    }
-    var id   = ++floatIdRef.current;
-    var left = (30 + Math.random() * 40);
-    setFloats(function(prev){ return prev.concat([{id:id,value:result.earned,isCrit:result.isCrit,left:left}]); });
-    setTimeout(function(){ setFloats(function(prev){ return prev.filter(function(f){ return f.id!==id; }); }); }, 850);
+    // Defer the actual state mutation out of the click handler so the browser
+    // can paint the animation frame before doing the heavy React setState work.
+    requestAnimationFrame(function() {
+      var result = cl.tap();
+      if (result.isCrit) {
+        setIsCrit(true);
+        if (critTimer.current) clearTimeout(critTimer.current);
+        critTimer.current = setTimeout(function(){ setIsCrit(false); }, 450);
+      }
+      var id   = ++floatIdRef.current;
+      var left = (30 + Math.random() * 40);
+      setFloats(function(prev){ return prev.concat([{id:id,value:result.earned,isCrit:result.isCrit,left:left}]); });
+      setTimeout(function(){ setFloats(function(prev){ return prev.filter(function(f){ return f.id!==id; }); }); }, 850);
+    });
   }
 
   function doPrestige() {

@@ -204,11 +204,14 @@ style:{ display:'block', width:'100%', marginTop:10, background:'transparent', b
 );
 }
 
-// ─── SETTINGS MODAL (fix #5) ──────────────────────────────────────────────────
+// ─── SETTINGS MODAL ───────────────────────────────────────────────────────────
 function SettingsModal(props) {
 if (!props.open) return null;
 var onClose = props.onClose;
 var onReset = props.onReset;
+var s_confirm = useState(false); var confirmReset = s_confirm[0], setConfirmReset = s_confirm[1];
+// Reset confirm state whenever modal closes
+useEffect(function(){ if (!props.open) setConfirmReset(false); }, [props.open]);
 return e('div',{onClick:onClose,style:{position:'fixed',inset:0,zIndex:900,background:'rgba(0,0,0,0.92)',display:'flex',alignItems:'center',justifyContent:'center',padding:24}},
 e('div',{onClick:function(ev){ev.stopPropagation();},style:{width:'100%',maxWidth:400,background:'#0a0e1a',border:'1px solid #1d2740',borderRadius:20,padding:'22px 22px 26px',animation:'scaleIn 0.3s cubic-bezier(0.34,1.56,0.64,1)'}},
 e('div',{style:row({justifyContent:'space-between',marginBottom:20})},
@@ -232,8 +235,21 @@ e('div',{style:{padding:'12px 14px',background:'#080b12',border:'1px solid #151e
 e('div',{style:mn(9,'#94a3b8',{fontWeight:700,marginBottom:4})},'PRIVACY'),
 e('div',{style:{fontSize:12,color:'#475569',lineHeight:1.5}},'All data is stored locally on your device. Zero-knowledge. No account required.')
 ),
-e('div',{style:{marginTop:6,padding:'1px'},onClick:function(ev){ev.stopPropagation();}},
-e('button',{onClick:function(){onClose();onReset();},style:{width:'100%',padding:'12px',background:'rgba(239,68,68,0.07)',border:'1px solid rgba(239,68,68,0.3)',borderRadius:12,fontSize:10,color:'#ef4444',fontFamily:"'DM Mono',monospace",fontWeight:700,letterSpacing:'0.12em',cursor:'pointer'}},'⚠ RESET ALL DATA')
+// ── DANGER ZONE ──
+e('div',{style:{marginTop:10,padding:'14px',background:'rgba(239,68,68,0.04)',border:'1px solid rgba(239,68,68,0.15)',borderRadius:12},onClick:function(ev){ev.stopPropagation();}},
+e('div',{style:mn(8,'#ef444488',{fontWeight:700,letterSpacing:'0.18em',marginBottom:8})},'⚠ DANGER ZONE'),
+!confirmReset
+? e('button',{
+    onClick:function(){setConfirmReset(true);},
+    style:{width:'100%',padding:'11px',background:'transparent',border:'1px solid rgba(239,68,68,0.25)',borderRadius:10,fontSize:10,color:'#ef444499',fontFamily:"'DM Mono',monospace",fontWeight:700,letterSpacing:'0.12em',cursor:'pointer'}
+  },'RESET ALL DATA')
+: e('div',{style:{display:'flex',flexDirection:'column',gap:8}},
+    e('div',{style:{fontSize:11,color:'#ef4444',lineHeight:1.5,textAlign:'center',marginBottom:4}},'This permanently deletes all tasks, journal entries, XP, and progress. Cannot be undone.'),
+    e('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}},
+      e('button',{onClick:function(){setConfirmReset(false);},style:{padding:'11px',background:'transparent',border:'1px solid #1d2740',borderRadius:10,fontSize:10,color:'#94a3b8',fontFamily:"'DM Mono',monospace",cursor:'pointer'}},'CANCEL'),
+      e('button',{onClick:function(){onClose();onReset();},style:{padding:'11px',background:'rgba(239,68,68,0.12)',border:'1px solid rgba(239,68,68,0.5)',borderRadius:10,fontSize:10,color:'#ef4444',fontFamily:"'DM Mono',monospace",fontWeight:700,cursor:'pointer'}},'YES, WIPE IT ALL')
+    )
+  )
 )
 )
 )
@@ -430,9 +446,12 @@ e('span',{style:mn(8,'#2d3748')},'+'+xpAward+' XP'),
 cond(streak>0&&!done,e('span',{style:mn(8,'#f97316',{fontWeight:700})},streak+(task.freq==='weekly'?' wk':' day')+' streak'))
 )
 ),
-cond(hover&&!done&&onDelete,
-e('button',{onClick:function(ev){ev.stopPropagation();onDelete(task.id);},style:{background:'transparent',border:'none',color:'#2d3748',fontSize:14,cursor:'pointer',padding:'4px 6px',flexShrink:0,lineHeight:1},onMouseEnter:function(ev){ev.currentTarget.style.color='#ef4444';},onMouseLeave:function(ev){ev.currentTarget.style.color='#2d3748';}},'×')
-),
+!done&&onDelete && e('button',{
+onClick:function(ev){ev.stopPropagation();onDelete(task.id);},
+style:{background:'transparent',border:'none',color:'#1e2a3a',fontSize:15,cursor:'pointer',padding:'4px 8px',flexShrink:0,lineHeight:1,transition:'color 0.15s'},
+onMouseEnter:function(ev){ev.currentTarget.style.color='#ef4444';},
+onMouseLeave:function(ev){ev.currentTarget.style.color='#1e2a3a';}
+},'×'),
 e('button',{
 onClick:function(){if(!done)onLog(task);},
 style:{width:32,height:32,borderRadius:'50%',background:done?'#14532d':'#0a0d14',border:'1px solid '+(done?'#22c55e':'#1e3a5f'),display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,color:done?'#22c55e':'#1e3a5f',cursor:done?'default':'pointer',flexShrink:0,transition:'all 0.2s',animation:done?'checkPop 0.25s ease':'none'},
@@ -687,6 +706,9 @@ var taskLog=state.taskLog||[];
 var s1=useState(false); var showModal=s1[0],setShowModal=s1[1];
 var s2=useState(null); var toastTask=s2[0],setToastTask=s2[1];
 var s3=useState(0); var toastClarity=s3[0],setToastClarity=s3[1];
+var s4=useState(true); var dailyDoneCollapsed=s4[0],setDailyDoneCollapsed=s4[1];
+var s5=useState(true); var weeklyDoneCollapsed=s5[0],setWeeklyDoneCollapsed=s5[1];
+var s6=useState(true); var onceDoneCollapsed=s6[0],setOnceDoneCollapsed=s6[1];
 var timerRef=useRef(null);
 useEffect(function(){return function(){if(timerRef.current)clearTimeout(timerRef.current);};},[]);
 
@@ -710,9 +732,11 @@ var totalWeekly = weeklyTasks.length;
 var todayXP = taskLog.filter(function(l){ return l.date===new Date().toISOString().slice(0,10); }).reduce(function(s,l){ return s+l.xp; }, 0);
 var existingIds = tasks.map(function(t){ return t.id; });
 
-function section(title, items, compMap, badge) {
+function section(title, items, compMap, badge, doneCollapsed, setDoneCollapsed) {
 if (!items.length) return null;
-var doneCount = items.filter(function(t){ return compMap[t.id]; }).length;
+var pendingItems = items.filter(function(t){ return !compMap[t.id]; });
+var doneItems = items.filter(function(t){ return compMap[t.id]; });
+var doneCount = doneItems.length;
 return e('div',{style:card},
 e('div',{style:cardH},
 e('div',{style:row({gap:8})},
@@ -722,10 +746,21 @@ cond(badge, e('span',{style:{fontSize:9,fontFamily:"'DM Mono',monospace",color:'
 e('span',{style:mn(9,doneCount===items.length&&items.length>0?'#22c55e':'#2d3748')},doneCount+'/'+items.length)
 ),
 e('div',null,
-items.map(function(task){
-var done=!!(compMap[task.id]);
-return e(TaskItem,{key:task.id,task:task,done:done,taskLog:taskLog,onLog:doLog,onDelete:function(id){engine.deleteTask(id);}});
+pendingItems.map(function(task){
+return e(TaskItem,{key:task.id,task:task,done:false,taskLog:taskLog,onLog:doLog,onDelete:function(id){engine.deleteTask(id);}});
+}),
+doneItems.length > 0 && e('div',null,
+e('button',{
+onClick:function(){setDoneCollapsed&&setDoneCollapsed(function(c){return !c;});},
+style:{width:'100%',padding:'8px 14px',background:'transparent',border:'none',borderTop:'1px solid #0a0d14',display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'pointer',fontFamily:"'DM Mono',monospace"}
+},
+e('span',{style:mn(8,'#2d3748',{letterSpacing:'0.12em'})},'COMPLETED ('+doneCount+')'),
+e('span',{style:{color:'#2d3748',fontSize:9}},doneCollapsed?'▼ SHOW':'▲ HIDE')
+),
+!doneCollapsed && doneItems.map(function(task){
+return e(TaskItem,{key:task.id,task:task,done:true,taskLog:taskLog,onLog:doLog,onDelete:function(id){engine.deleteTask(id);}});
 })
+)
 )
 );
 }
@@ -738,7 +773,7 @@ e('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10,marginBo
 [
 {label:'TODAY XP',val:'+'+todayXP,color:'#4a9eff'},
 {label:'DAILY',val:doneToday+'/'+totalDaily,color:doneToday===totalDaily&&totalDaily>0?'#22c55e':'#94a3b8'},
-{label:'WEEKLY',val:doneWeekly+'/'+totalWeekly,color:totalWeekly===0?'#2d3748':(doneWeekly===totalWeekly?'#22c55e':'#f97316')}
+{label:'WEEKLY',val:totalWeekly===0?'—':doneWeekly+'/'+totalWeekly,color:totalWeekly===0?'#2d3748':(doneWeekly===totalWeekly?'#22c55e':'#f97316')}
 ].map(function(item){
 return e('div',{key:item.label,style:{background:'#0a0e1a',border:'1px solid #151e30',borderRadius:12,padding:'12px 14px'}},
 e('div',{style:mn(7,'#2d3748',{marginBottom:5})},item.label),
@@ -759,9 +794,9 @@ e('div',{style:{height:'100%',width:Math.round((doneToday/totalDaily)*100)+'%',b
 )
 ),
 
-section('DAILY PROTOCOL', dailyTasks, completedToday),
-section('WEEKLY QUESTS', weeklyTasks, completedWeek),
-section('ONE-TIME OPS', onceTasks, completedOnce),
+section('DAILY PROTOCOL', dailyTasks, completedToday, null, dailyDoneCollapsed, setDailyDoneCollapsed),
+section('WEEKLY QUESTS', weeklyTasks, completedWeek, null, weeklyDoneCollapsed, setWeeklyDoneCollapsed),
+section('ONE-TIME OPS', onceTasks, completedOnce, null, onceDoneCollapsed, setOnceDoneCollapsed),
 
 e('button',{
 onClick:function(){setShowModal(true);},
@@ -923,6 +958,8 @@ var s5=useState(false); var showSettings=s5[0],setShowSettings=s5[1];
 // fix #15: first-run onboarding
 var s6=useState(function(){ try { return !localStorage.getItem('silo_onboarded_v1'); } catch(x){ return true; } });
 var showOnboarding=s6[0],setShowOnboarding=s6[1];
+// signal status info panel
+var s7=useState(false); var showSignalInfo=s7[0],setShowSignalInfo=s7[1];
 
 var clarity=useClarity(engine.state, vip.isVIP);
 
@@ -975,7 +1012,7 @@ e('style',null,CSS),
 e(OnboardingModal,{open:showOnboarding,onClose:dismissOnboarding}),
 e(VIPModal,{open:showVIP,onClose:function(){setShowVIP(false);},onUpgrade:vip.upgrade}),
 // fix #5: SettingsModal properly wired
-e(SettingsModal,{open:showSettings,onClose:function(){setShowSettings(false);},onReset:function(){if(window.confirm('Reset all SILO data? This cannot be undone.'))engine.resetAll();}}),
+e(SettingsModal,{open:showSettings,onClose:function(){setShowSettings(false);},onReset:function(){engine.resetAll();}}),
 // fix #4: UrgeModal close is closeUrge (no reload)
 e(UrgeModal,{open:showUrge,onClose:closeUrge,isVIP:vip.isVIP,canUse:urgeCanUse(),onNeedVIP:function(){setShowUrge(false);setShowVIP(true);},onMarkUsed:markUrgeUsed}),
 e(SignalCheckinModal,{show:showCheckin&&!signal.todayId,onSelect:function(s){signal.doCheckin(s);setShowCheckin(false);}}),
@@ -998,7 +1035,7 @@ e('div',{style:{width:6,height:6,borderRadius:'50%',background:tier.color,animat
 e('span',{style:mn(14,'#e2e8f0',{fontWeight:700,letterSpacing:'0.18em'})},'SILO'),
 vip.isVIP && e('span',{style:{fontSize:8,fontFamily:"'DM Mono',monospace",color:'#8b5cf6',fontWeight:700,letterSpacing:'0.15em',marginLeft:4}},'VIP'),
 // fix #12: FLICKERING badge now has a tooltip explaining what it means
-e(SignalPulse,{signalObj:signal.todayObj,onClick:function(){setShowCheckin(true);},title:'Your current emotional signal state. Tap to check in.'})
+e(SignalPulse,{signalObj:signal.todayObj,onClick:function(){signal.todayObj?setShowSignalInfo(function(v){return !v;}):setShowCheckin(true);},title:signal.todayObj?'Signal: '+signal.todayObj.label+' — tap for details':'Tap to check in your emotional signal state.'})
 ),
 e('div',{style:row({gap:6})},
 e('div',{title:'Total Clarity \u2014 earned across every tab',style:{padding:'4px 9px',background:'rgba(6,182,212,0.07)',border:'1px solid #0e4a55',borderRadius:7}},
@@ -1023,6 +1060,39 @@ title:'Settings',
 style:{width:30,height:30,background:'#11151f',border:'1px solid #1d2740',borderRadius:7,display:'flex',alignItems:'center',justifyContent:'center',color:'#94a3b8',fontSize:13,minWidth:30,cursor:'pointer'}
 },'\u2699')
 )
+)
+),
+
+// Signal info panel (shown when tapping the signal badge with a check-in already done)
+showSignalInfo && e('div',{
+onClick:function(){setShowSignalInfo(false);},
+style:{position:'fixed',inset:0,zIndex:300,background:'transparent'}
+},
+e('div',{
+onClick:function(ev){ev.stopPropagation();},
+style:{position:'fixed',top:58,left:16,right:16,maxWidth:360,margin:'0 auto',zIndex:301,background:'#0a0e1a',border:'1px solid #1d2740',borderRadius:14,padding:'16px',boxShadow:'0 8px 32px rgba(0,0,0,0.8)',animation:'slideUp 0.2s ease'}
+},
+e('div',{style:row({justifyContent:'space-between',marginBottom:12})},
+e('div',{style:mn(9,'#94a3b8',{fontWeight:700,letterSpacing:'0.18em'})},'● SIGNAL STATUS'),
+e('button',{onClick:function(){setShowSignalInfo(false);},style:{background:'transparent',border:'none',color:'#475569',cursor:'pointer',fontSize:16}},'×')
+),
+signal.todayObj && e('div',{style:{padding:'10px 12px',background:signal.todayObj.color+'12',border:'1px solid '+signal.todayObj.color+'44',borderRadius:10,marginBottom:12}},
+e('div',{style:mn(11,signal.todayObj.color,{fontWeight:700,marginBottom:4})},'TODAY: '+signal.todayObj.label),
+e('div',{style:{fontSize:12,color:'#94a3b8',lineHeight:1.5}},signal.todayObj.desc),
+e('div',{style:mn(8,'#475569',{marginTop:6})},'XP ×'+signal.todayObj.xpMult+' · Clarity ×'+signal.todayObj.clarityMult)
+),
+e('div',{style:mn(8,'#475569',{marginBottom:8,letterSpacing:'0.12em'})},'SIGNAL RANGE — FROM WORST TO BEST:'),
+e('div',{style:{display:'flex',flexDirection:'column',gap:5}},
+[{id:'flat',label:'FLAT',desc:'Signal offline.',color:'#475569'},{id:'flickering',label:'FLICKERING',desc:'Weak signal. Something stirs.',color:'#f97316'},{id:'steady',label:'STEADY',desc:'Signal stable. Core holding.',color:'#4a9eff'},{id:'strong',label:'STRONG',desc:'Signal clear. Full transmission.',color:'#22c55e'}].map(function(s){
+var isCurrent=signal.todayObj&&signal.todayObj.id===s.id;
+return e('div',{key:s.id,style:{display:'flex',alignItems:'center',gap:8,padding:'6px 8px',borderRadius:8,background:isCurrent?s.color+'12':'transparent'}},
+e('div',{style:{width:7,height:7,borderRadius:'50%',background:s.color,flexShrink:0}}),
+e('div',{style:mn(9,isCurrent?s.color:'#475569',{flex:1})},s.label+' — '+s.desc),
+isCurrent&&e('div',{style:mn(8,s.color,{fontWeight:700})},'← TODAY')
+);
+})
+),
+e('button',{onClick:function(){setShowSignalInfo(false);setShowCheckin(true);},style:{width:'100%',marginTop:12,padding:'9px',background:'transparent',border:'1px solid #1d2740',borderRadius:9,fontSize:9,color:'#475569',fontFamily:"'DM Mono',monospace",cursor:'pointer',letterSpacing:'0.1em'}},'UPDATE TODAY\'S CHECK-IN')
 )
 ),
 
@@ -1060,7 +1130,7 @@ var on=tab===tb.id;
 return e('button',{key:tb.id,onClick:function(){setTab(tb.id);},style:{flex:1,padding:'8px 4px 4px',background:'transparent',border:'none',display:'flex',flexDirection:'column',alignItems:'center',gap:2,cursor:'pointer',minHeight:48}},
 e('span',{style:{fontSize:20,filter:on?'drop-shadow(0 0 6px #4a9eff)':'none',transition:'filter 0.2s'}},tb.glyph),
 // fix #11: larger label font size
-e('span',{style:mn(9,on?'#4a9eff':'#475569',{fontWeight:on?700:400,transition:'color 0.2s'})},tb.label.toUpperCase()),
+e('span',{style:mn(9,on?'#4a9eff':'#64748b',{fontWeight:on?700:400,transition:'color 0.2s'})},tb.label.toUpperCase()),
 cond(on,e('div',{style:{width:16,height:2,background:'#4a9eff',borderRadius:1,marginTop:2}}))
 );
 })

@@ -379,10 +379,11 @@ function setText(v) { setModeTexts(function(p){ var n=Object.assign({},p); n[act
               }
             },
             title:unlocked ? mode.desc : 'Unlock at ' + mode.unlockAt + '-day streak',
-            style:{ padding:'6px 12px', background:active?'#0d1a2e':'transparent', border:'1px solid '+(active?'#4a9eff66':unlocked?'#1e2a3a':'#0f1520'), borderRadius:8, fontSize:9, color:active?'#4a9eff':unlocked?'#475569':'#2d3748', fontFamily:"'DM Mono',monospace", letterSpacing:'0.1em', cursor:unlocked?'pointer':'not-allowed', transition:'all 0.15s', opacity:unlocked?1:0.4, display:'flex', alignItems:'center', gap:5 }
+            style:{ padding:'6px 12px', background:active?'#0d1a2e':'transparent', border:'1px solid '+(active?'#4a9eff66':unlocked?'#1e2a3a':'#1a2030'), borderRadius:8, fontSize:9, color:active?'#4a9eff':unlocked?'#475569':'#3d4d63', fontFamily:"'DM Mono',monospace", letterSpacing:'0.1em', cursor:unlocked?'pointer':'not-allowed', transition:'all 0.15s', opacity:unlocked?1:0.6, display:'flex', alignItems:'center', gap:5 }
           },
-            e('span', null, mode.icon), e('span', null, mode.label),
-            !unlocked && e('span', { style:{ fontSize:7, color:'#2d3748' } }, '(' + mode.unlockAt + 'd)')
+            e('span', null, unlocked ? mode.icon : '🔒'),
+            e('span', null, mode.label),
+            !unlocked && e('span', { style:{ fontSize:8, color:'#475569', marginLeft:2 } }, mode.unlockAt + 'd streak')
           );
         })
       )
@@ -475,7 +476,7 @@ function setText(v) { setModeTexts(function(p){ var n=Object.assign({},p); n[act
         ),
         e('button', { onClick:doBurn, disabled:!canSubmit, style:{ padding:'14px 16px', background:canSubmit?'#150806':'#080b12', display:'flex', flexDirection:'column', alignItems:'flex-start', gap:3, transition:'all 0.15s', cursor:canSubmit?'pointer':'default', minHeight:52, border:'none' } },
           e('span', { style:mn(10, canSubmit?'#ef4444':'#1a2535', {fontWeight:700,letterSpacing:'0.15em'}) }, '◈ BURN & PURGE'),
-          e('span', { style:mn(8,'#1e2a3a',{letterSpacing:'0.08em'}) }, 'VAPORIZE · GRANT XP')
+          e('span', { style:mn(8,'#2d3748',{letterSpacing:'0.08em'}) }, 'Delete entry, earn XP — text is gone forever')
         )
       )
     ),
