@@ -20,8 +20,8 @@ function markOnboarded() {
 var SLIDES = [
   {
     glyph: '◆',
-    title: 'SILO is your signal engine.',
-    body: "Track your mental signal daily. Build streaks. Journal privately. Watch your system evolve over time. Everything stays on your device — always.",
+    title: 'SILO is your personal growth system.',
+    body: "Check in daily. Build streaks. Write privately. Watch yourself level up over time. Everything stays on your device — always private, always yours.",
     rows: null,
   },
   {
@@ -29,16 +29,16 @@ var SLIDES = [
     title: null,
     body: null,
     rows: [
-      { icon: '◎', label: 'JOURNAL',  desc: 'Write daily. Commit to save. Burn to release. Your words generate XP.' },
-      { icon: '▪', label: 'TASKS',    desc: 'Complete real-world protocols. Every task charges your system.' },
-      { icon: '◈', label: 'CLARITY',  desc: 'Idle engine powered by your momentum. Tap, build generators, grow.' },
+      { icon: '◎', label: 'JOURNAL',  desc: 'Write daily entries. Save to track patterns, or release them to clear your head. Every entry earns XP.' },
+      { icon: '▪', label: 'TASKS',    desc: 'Build habits and routines. Complete tasks to earn XP and grow your streak.' },
+      { icon: '◈', label: 'CLARITY',  desc: 'A gentle idle game that runs in the background. Tap to build, watch it grow.' },
     ],
-    footer: 'Your signal check-in each morning sets your XP multiplier for the day.',
+    footer: 'Your daily mood check-in shapes how much XP you earn — even low days count.',
   },
   {
     glyph: null,
     title: 'Everything compounds.',
-    body: "Streaks multiply your XP. Journal entries surface past patterns. Your Core Entity evolves as you level up. This is a long-term system — show up daily.",
+    body: "Streaks multiply your XP. Past entries surface when you need them. You level up the more you show up. Even one minute a day adds up.",
     rows: null,
     cta: true,
   },
@@ -147,7 +147,7 @@ export function Onboarding(props) {
     ? e('button', {
         onClick: finish,
         style: { width: '100%', padding: '14px 0', background: '#4a9eff', border: 'none', borderRadius: 10, color: '#0d1117', fontWeight: 700, fontSize: 13, fontFamily: '"DM Mono",monospace', letterSpacing: '0.15em', cursor: 'pointer' }
-      }, '◆ BEGIN TRANSMISSION')
+      }, "◆ Let's Go")
     : e('button', {
         onClick: next,
         style: { width: '100%', padding: '13px 0', background: 'rgba(74,158,255,0.1)', border: '1px solid #4a9eff44', borderRadius: 10, color: '#4a9eff', fontWeight: 700, fontSize: 12, fontFamily: '"DM Mono",monospace', letterSpacing: '0.15em', cursor: 'pointer' }

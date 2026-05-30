@@ -11,20 +11,20 @@ var e         = React.createElement;
 
 // SIGNAL_STATES - maps to the recovery arc
 export var SIGNAL_STATES = [
-  { id:'flat',       label:'FLAT',       desc:'Signal offline. Holding position.',  color:'#475569', glow:'rgba(71,85,105,0.5)',  xpMult:0.8, clarityMult:0.7  },
-  { id:'flickering', label:'FLICKERING', desc:'Weak signal. Something stirs.',       color:'#f97316', glow:'rgba(249,115,22,0.5)', xpMult:1.0, clarityMult:1.0  },
-  { id:'steady',     label:'STEADY',     desc:'Signal stable. Core holding.',        color:'#4a9eff', glow:'rgba(74,158,255,0.5)', xpMult:1.2, clarityMult:1.25 },
-  { id:'strong',     label:'STRONG',     desc:'Signal clear. Full transmission.',    color:'#22c55e', glow:'rgba(34,197,94,0.5)',  xpMult:1.5, clarityMult:1.5  },
+  { id:'flat',       label:'Low',        desc:'Drained, heavy, or numb. Still worth showing up.',  color:'#475569', glow:'rgba(71,85,105,0.5)',  xpMult:0.8, clarityMult:0.7  },
+  { id:'flickering', label:'Unsteady',   desc:'Foggy or off-balance, but you\'re here.',            color:'#f97316', glow:'rgba(249,115,22,0.5)', xpMult:1.0, clarityMult:1.0  },
+  { id:'steady',     label:'Good',       desc:'Grounded and present. Things feel manageable.',      color:'#4a9eff', glow:'rgba(74,158,255,0.5)', xpMult:1.2, clarityMult:1.25 },
+  { id:'strong',     label:'Energized',  desc:'Clear, motivated, and ready. Let\'s go.',            color:'#22c55e', glow:'rgba(34,197,94,0.5)',  xpMult:1.5, clarityMult:1.5  },
 ];
 
 // EVOLUTION_NARRATIVE - richer text for each stage transition
 export var EVOLUTION_NARRATIVE = {
-  Quiescent: { unlock:'Journey begins. The signal is dormant — but it is there.',  flavor:'You went dark. That was the right thing to do.',             what:'First steps. Daily protocol unlocked.' },
-  Resonant:  { unlock:'Signal detected. The first transmission has returned.',      flavor:'You showed up. That is everything.',                          what:'Skill Tree unlocked. Begin building your attributes.' },
-  Kinetic:   { unlock:'System active. You are generating output.',                  flavor:'The work is compounding. You can feel it.',                   what:'Clarity generators now respond to your streak.' },
-  Cascade:   { unlock:'Cascade initiated. Multiple systems firing.',                flavor:'You stopped waiting to feel ready.',                          what:'XP Bridge unlocked. Real-world actions fuel the signal engine.' },
-  Sovereign: { unlock:'Sovereignty achieved. Operating from core truth.',           flavor:'You are no longer who the loss told you you were.',            what:'Prestige system unlocked. New run, deeper signal.' },
-  Monolithic:{ unlock:'Full signal. The architecture is complete.',                 flavor:'This was always possible. You built it anyway.',              what:'All systems at maximum capacity. You made it.' },
+  Quiescent: { unlock:'Your journey is starting. The foundation is in place.',      flavor:'You showed up. That\'s already more than most people do.',    what:'Daily check-in and journal are now unlocked.' },
+  Resonant:  { unlock:'You\'re building momentum. Growth is happening.',            flavor:'Consistency is the whole game. You\'re doing it.',            what:'Skill Tree unlocked — start investing in your attributes.' },
+  Kinetic:   { unlock:'You\'re generating real output. Things are moving.',         flavor:'The effort is compounding. You can feel it.',                 what:'Clarity generators now respond to your streak.' },
+  Cascade:   { unlock:'Multiple habits are reinforcing each other now.',            flavor:'You stopped waiting until you felt ready.',                   what:'XP Bridge unlocked — convert your real-world effort into Clarity.' },
+  Sovereign: { unlock:'You\'re operating from a place of genuine clarity.',         flavor:'You are no longer who the struggle told you you were.',       what:'Prestige unlocked — a new cycle with everything you\'ve learned.' },
+  Monolithic:{ unlock:'You\'ve built something rare. This is the full system.',     flavor:'This was always possible. You built it anyway.',              what:'All features at maximum. You made it.' },
 };
 
 // STORAGE
@@ -52,10 +52,10 @@ export function useSignalCheckin() {
 }
 
 var SIGNAL_TOOLTIPS = [
-  { id:'flat',       color:'#475569', label:'FLAT',       tip:'Heavy, drained, or numb. Signal is down. Still counts — showing up matters most here.' },
-  { id:'flickering', color:'#f97316', label:'FLICKERING', tip:'Low energy or foggy but present. Something is stirring. Standard XP day.' },
-  { id:'steady',     color:'#4a9eff', label:'STEADY',     tip:'Grounded and functional. Good signal. +20% XP boost today.' },
-  { id:'strong',     color:'#22c55e', label:'STRONG',     tip:'Clear, motivated, locked in. Full transmission. +50% XP boost today.' },
+  { id:'flat',       color:'#475569', label:'Low',        tip:'Heavy, drained, or numb. Showing up is what matters most on days like this.' },
+  { id:'flickering', color:'#f97316', label:'Unsteady',   tip:'Low energy or foggy, but you\'re present. Standard XP day — that\'s enough.' },
+  { id:'steady',     color:'#4a9eff', label:'Good',       tip:'Grounded and functional. Things are working. You get a +20% XP boost today.' },
+  { id:'strong',     color:'#22c55e', label:'Energized',  tip:'Clear, motivated, locked in. Your best work happens here. +50% XP boost today.' },
 ];
 
 // SIGNAL CHECK-IN MODAL
@@ -68,9 +68,9 @@ export function SignalCheckinModal(props) {
   return e('div',{style:{position:'fixed',inset:0,zIndex:950,background:'rgba(0,0,0,0.88)',display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(10px)'}},
     e('div',{onClick:function(ev){ev.stopPropagation();},style:{maxWidth:360,width:'100%',margin:'0 16px',background:'rgba(8,12,20,0.99)',border:'1px solid #1d2740',borderRadius:18,padding:'32px 22px',animation:'scaleIn 0.35s cubic-bezier(0.34,1.56,0.64,1)'}},
       e('div',{style:{textAlign:'center',marginBottom:28}},
-        e('div',{style:{fontSize:10,color:'#4a9eff',letterSpacing:'0.25em',fontFamily:'"DM Mono",monospace',marginBottom:12}},'SIGNAL CHECK-IN'),
-        e('div',{style:{fontSize:22,fontWeight:700,color:'#e2e8f0',lineHeight:1.3,marginBottom:8}},'How is the signal today?'),
-        e('div',{style:{fontSize:12,color:'#475569',lineHeight:1.6}},"Your answer shapes the day's resonance and XP multiplier.")
+        e('div',{style:{fontSize:10,color:'#4a9eff',letterSpacing:'0.25em',fontFamily:'"DM Mono",monospace',marginBottom:12}},'DAILY CHECK-IN'),
+        e('div',{style:{fontSize:22,fontWeight:700,color:'#e2e8f0',lineHeight:1.3,marginBottom:8}},'How are you feeling today?'),
+        e('div',{style:{fontSize:12,color:'#475569',lineHeight:1.6}},"Your answer shapes how much XP you earn today.")
       ),
       e('div',{style:{marginBottom:12}},
         e('button',{onClick:function(){setShowTooltips(!showTooltips);},style:{background:'none',border:'none',cursor:'pointer',fontSize:9,color:'#475569',letterSpacing:'0.15em',fontFamily:'"DM Mono",monospace',padding:'2px 0',display:'block',marginBottom: showTooltips ? 8 : 0}},
@@ -95,7 +95,7 @@ export function SignalCheckinModal(props) {
             onMouseLeave:function(ev){ev.currentTarget.style.background='rgba(13,17,23,0.7)';ev.currentTarget.style.borderColor=s.color+'44';ev.currentTarget.style.boxShadow='none';}},
             e('div',{style:{width:10,height:10,borderRadius:'50%',background:s.color,boxShadow:'0 0 8px '+s.glow,flexShrink:0}}),
             e('div',{},
-              e('div',{style:{fontSize:12,fontWeight:700,color:s.color,letterSpacing:'0.12em',fontFamily:'"DM Mono",monospace'}},s.label),
+              e('div',{style:{fontSize:13,fontWeight:700,color:s.color,fontFamily:'"DM Sans",sans-serif'}},s.label),
               e('div',{style:{fontSize:11,color:'#64748b',marginTop:2}},s.desc)
             ),
             e('div',{style:{marginLeft:'auto',fontSize:10,color:s.color+'99',fontFamily:'"DM Mono",monospace'}},'x'+s.xpMult+' XP')
@@ -113,7 +113,7 @@ export function EvolutionRevealModal(props) {
   var t    = props.tier;
   return e('div',{onClick:props.onClose,style:{position:'fixed',inset:0,zIndex:920,background:'rgba(0,0,0,0.92)',display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(12px)'}},
     e('div',{onClick:function(ev){ev.stopPropagation();},style:{maxWidth:380,width:'100%',margin:'0 16px',background:'linear-gradient(160deg,rgba(8,12,20,0.99),rgba(10,15,26,0.99))',border:'1px solid '+t.color+'66',borderRadius:18,padding:'36px 24px',boxShadow:'0 0 60px '+t.glow+',inset 0 1px 0 rgba(255,255,255,0.05)',animation:'scaleIn 0.4s cubic-bezier(0.34,1.56,0.64,1)',textAlign:'center'}},
-      e('div',{style:{fontSize:9,letterSpacing:'0.3em',color:t.color,fontFamily:'"DM Mono",monospace',marginBottom:20}},'EVOLUTION EVENT'),
+      e('div',{style:{fontSize:9,letterSpacing:'0.3em',color:t.color,fontFamily:'"DM Mono",monospace',marginBottom:20}},'NEW MILESTONE'),
       e('div',{style:{fontSize:28,fontWeight:800,color:t.color,letterSpacing:'0.05em',marginBottom:6,lineHeight:1.2,textShadow:'0 0 20px '+t.glow}},t.title.toUpperCase()),
       e('div',{style:{fontSize:13,color:'#94a3b8',marginBottom:24,lineHeight:1.6}},narr.unlock||t.desc),
       narr.flavor && e('div',{style:{background:'rgba(13,17,23,0.8)',border:'1px solid '+t.color+'33',borderRadius:10,padding:'14px 16px',marginBottom:20,textAlign:'left'}},
@@ -123,7 +123,7 @@ export function EvolutionRevealModal(props) {
       e('button',{onClick:props.onClose,style:{padding:'12px 32px',background:'transparent',border:'1px solid '+t.color,borderRadius:8,color:t.color,fontSize:11,fontFamily:'"DM Mono",monospace',letterSpacing:'0.15em',cursor:'pointer'},
         onMouseEnter:function(ev){ev.currentTarget.style.background=t.color+'20';ev.currentTarget.style.boxShadow='0 0 16px '+t.glow;},
         onMouseLeave:function(ev){ev.currentTarget.style.background='transparent';ev.currentTarget.style.boxShadow='none';}
-      },'ACKNOWLEDGE TRANSMISSION')
+      },'Got It')
     )
   );
 }
@@ -138,18 +138,18 @@ export function XPBridgeWidget(props) {
   var pct        = Math.min(100, Math.round((props.totalXP % XP_BRIDGE_RATE) / XP_BRIDGE_RATE * 100));
   return e('div',{style:{background:'rgba(13,17,23,0.6)',border:'1px solid #1d2740',borderRadius:12,padding:'16px 18px',marginTop:12}},
     e('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}},
-      e('div',{style:{fontSize:9,letterSpacing:'0.2em',color:'#4a9eff',fontFamily:'"DM Mono",monospace'}},'XP -> CLARITY BRIDGE'),
+      e('div',{style:{fontSize:9,letterSpacing:'0.2em',color:'#4a9eff',fontFamily:'"DM Mono",monospace'}},'Convert XP to Clarity'),
       e('div',{style:{fontSize:9,color:'#475569',fontFamily:'"DM Mono",monospace'}},XP_BRIDGE_RATE+' XP = '+clarityOut+' CLARITY')
     ),
     e('div',{style:{height:3,background:'#0d1117',borderRadius:2,marginBottom:10,overflow:'hidden'}},
       e('div',{style:{width:(canConvert?100:pct)+'%',height:'100%',background:canConvert?'#4a9eff':'rgba(74,158,255,0.4)',borderRadius:2,transition:'width 0.6s ease',boxShadow:canConvert?'0 0 8px rgba(74,158,255,0.6)':'none'}})
     ),
-    e('div',{style:{fontSize:11,color:'#475569',marginBottom:12,lineHeight:1.5}},'Real-world actions generate XP. Convert it into Clarity to fuel your passive generators.'),
+    e('div',{style:{fontSize:11,color:'#475569',marginBottom:12,lineHeight:1.5}},'Tasks and journaling earn XP. Convert it into Clarity to power your generators.'),
     e('button',{onClick:canConvert?props.onConvert:undefined,disabled:!canConvert,
       style:{width:'100%',padding:'10px',background:canConvert?'rgba(74,158,255,0.08)':'transparent',border:'1px solid '+(canConvert?'#4a9eff88':'#1d2740'),borderRadius:8,color:canConvert?'#4a9eff':'#334155',fontSize:11,fontFamily:'"DM Mono",monospace',letterSpacing:'0.12em',cursor:canConvert?'pointer':'not-allowed',transition:'all 0.2s'},
       onMouseEnter:canConvert?function(ev){ev.currentTarget.style.background='rgba(74,158,255,0.15)';}:undefined,
       onMouseLeave:canConvert?function(ev){ev.currentTarget.style.background='rgba(74,158,255,0.08)';}:undefined
-    }, canConvert?'CONVERT '+XP_BRIDGE_RATE+' XP -> '+clarityOut+' CLARITY':'EARN MORE XP ('+props.totalXP+'/'+XP_BRIDGE_RATE+')')
+    }, canConvert?'Convert '+XP_BRIDGE_RATE+' XP → '+clarityOut+' Clarity':'Keep earning XP ('+props.totalXP+'/'+XP_BRIDGE_RATE+')')
   );
 }
 
@@ -158,6 +158,6 @@ export function SignalPulse(props) {
   var s = props.signalObj;
   return e('div',{onClick:props.onClick,style:{display:'flex',alignItems:'center',gap:8,cursor:props.onClick?'pointer':'default',padding:'4px 10px',background:s?s.color+'12':'transparent',border:'1px solid '+(s?s.color+'55':'#1d274033'),borderRadius:20,transition:'all 0.2s'}},
     e('div',{style:{width:7,height:7,borderRadius:'50%',background:s?s.color:'#1d2740',boxShadow:s?'0 0 6px '+s.glow+',0 0 12px '+s.glow:'none'}}),
-    e('span',{style:{fontSize:9,letterSpacing:'0.2em',color:s?s.color:'#334155',fontFamily:'"DM Mono",monospace'}},s?s.label:'CHECK IN')
+    e('span',{style:{fontSize:9,letterSpacing:'0.2em',color:s?s.color:'#334155',fontFamily:'"DM Mono",monospace'}},s?s.label:'Check In')
   );
 }

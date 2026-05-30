@@ -35,7 +35,7 @@ function c2(test, a, b) { return test ? a : b; }
 var CSS =
   "@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600;700&display=swap');" +
   "*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}" +
-  "html,body,#root{height:100%;background:#0d1117}"+
+  "html,body,#root{height:100%;background:#0f1623}"+
   "body{overscroll-behavior:none;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}" +
   "::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:#1a2d4a;border-radius:2px}" +
   "textarea,input{outline:none}button{cursor:pointer;border:none;background:none;padding:0}" +
@@ -53,8 +53,8 @@ var CSS =
 // ─── STYLE HELPERS ────────────────────────────────────────────────────────────
 function mn(sz,cl,x) { return Object.assign({fontFamily:"'DM Mono',monospace",fontSize:sz,color:cl,letterSpacing:'0.08em'},x||{}); }
 function row(x)      { return Object.assign({display:'flex',alignItems:'center'},x||{}); }
-var card = { background:'#161b27', border:'1px solid #1d2740', borderRadius:16, overflow:'hidden', marginBottom:12 };
-var cardH = { display:'flex', alignItems:'center', justifyContent:'space-between', padding:'11px 15px', borderBottom:'1px solid #161f32', background:'#11151f' };
+var card = { background:'#1a2030', border:'1px solid #243050', borderRadius:16, overflow:'hidden', marginBottom:12 };
+var cardH = { display:'flex', alignItems:'center', justifyContent:'space-between', padding:'11px 15px', borderBottom:'1px solid #1e2840', background:'#161d2e' };
 
 // ─── TABS ─────────────────────────────────────────────────────────────────────
 var TABS = [
@@ -144,7 +144,7 @@ function XPToast(props) {
   var d=props.data;
   return e('div',{style:{position:'fixed',top:'calc(20px + env(safe-area-inset-top, 0px))',right:'calc(20px + env(safe-area-inset-right, 0px))',zIndex:900,background:'#0a0e1a',border:'1px solid '+(d.shiftColor||'#4a9eff'),borderRadius:14,padding:'13px 17px',width:270,boxShadow:'0 0 24px '+(d.shiftColor||'#4a9eff')+'44',animation:'slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1)',fontFamily:"'DM Mono',monospace"}},
     e('div',{style:row({justifyContent:'space-between',marginBottom:9})},
-      e('span',{style:mn(10,d.shiftColor||'#4a9eff',{fontWeight:700,letterSpacing:'0.15em'})},c2(d.action==='burn','◈ PURGE COMPLETE','◆ MATRIX UPDATED')),
+      e('span',{style:mn(10,d.shiftColor||'#4a9eff',{fontWeight:700,letterSpacing:'0.15em'})},c2(d.action==='burn','Entry Released','Entry Saved ✓')),
       e('button',{onClick:props.onClose,style:{background:'transparent',border:'none',color:'#475569',cursor:'pointer',fontSize:16,lineHeight:1,padding:'0 2px'}},'×')
     ),
     e('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:6}},
@@ -245,7 +245,7 @@ function AchievementsModal(props) {
     e('div',{style:{maxWidth:640,margin:'0 auto',width:'100%'},onClick:function(ev){ev.stopPropagation();}},
       e('div',{style:row({justifyContent:'space-between',marginBottom:20})},
         e('div',null,
-          e('div',{style:mn(10,'#94a3b8',{letterSpacing:'0.25em',marginBottom:4})},'SYSTEM UNLOCKS'),
+          e('div',{style:mn(10,'#94a3b8',{letterSpacing:'0.25em',marginBottom:4})},'ACHIEVEMENTS'),
           e('div',{style:{fontSize:13,color:'#475569'}},unlocked.length+' / '+ACHIEVEMENTS.length+' acquired')
         ),
         e('button',{onClick:props.onClose,style:{background:'transparent',border:'1px solid #151e30',borderRadius:8,padding:'8px 14px',fontSize:10,color:'#475569',fontFamily:"'DM Mono',monospace",letterSpacing:'0.1em',cursor:'pointer'}},'CLOSE')
@@ -391,7 +391,7 @@ function TaskCreateModal(props) {
             )
           ),
           // Create button
-          e('button',{onClick:doCreate,style:{padding:'14px',background:'#0a1628',border:'1px solid #1e3a5f',borderRadius:12,fontSize:11,color:'#4a9eff',fontFamily:"'DM Mono',monospace",fontWeight:700,letterSpacing:'0.15em',cursor:'pointer',width:'100%',marginTop:4}},'◆ ADD TO PROTOCOL')
+          e('button',{onClick:doCreate,style:{padding:'14px',background:'#0a1628',border:'1px solid #1e3a5f',borderRadius:12,fontSize:11,color:'#4a9eff',fontFamily:"'DM Mono',monospace",fontWeight:700,letterSpacing:'0.15em',cursor:'pointer',width:'100%',marginTop:4}},'◆ Add to Routine')
         )
       ),
 
@@ -625,7 +625,7 @@ function SignalAnalytics(props) {
 
   return e('div',{style:Object.assign({},card,{background:'linear-gradient(145deg,#0a0e1a,#0d1220)'})},
     e('div',{style:cardH},
-      e('span',{style:mn(9,'#94a3b8',{fontWeight:700})},'SIGNAL ANALYTICS'),
+      e('span',{style:mn(9,'#94a3b8',{fontWeight:700})},'YOUR INSIGHTS'),
       e('span',{style:mn(9,'#8b5cf6',{fontWeight:700})},'◈ VIP')
     ),
     e('div',{style:{padding:'14px'}},
@@ -635,7 +635,7 @@ function SignalAnalytics(props) {
 
       // Mood history — last 7 entries
       recentEntries.length>0 && e('div',{style:{marginBottom:14}},
-        e('div',{style:mn(8,'#2d3748',{marginBottom:8,letterSpacing:'0.12em'})},'RECENT TRANSMISSIONS'),
+        e('div',{style:mn(8,'#2d3748',{marginBottom:8,letterSpacing:'0.12em'})},'RECENT ENTRIES'),
         e('div',{style:{display:'flex',gap:5}},
           recentEntries.map(function(en,i){
             var col=MOOD_COLORS[en.mood]||'#475569';
@@ -651,7 +651,7 @@ function SignalAnalytics(props) {
 
       // Signal state map — last 14 check-ins
       recentSignal.length>0 && e('div',{style:{marginBottom:14}},
-        e('div',{style:mn(8,'#2d3748',{marginBottom:8,letterSpacing:'0.12em'})},'SIGNAL HISTORY · 14 DAYS'),
+        e('div',{style:mn(8,'#2d3748',{marginBottom:8,letterSpacing:'0.12em'})},'MOOD HISTORY (14 DAYS)'),
         e('div',{style:{display:'flex',gap:3,flexWrap:'wrap'}},
           recentSignal.map(function(h,i){
             var col=SIGNAL_COLORS[h.state]||'#2d3748';
@@ -662,7 +662,7 @@ function SignalAnalytics(props) {
 
       // Task breakdown — last 30 days
       totalTasks>1 && e('div',{style:{marginBottom:14}},
-        e('div',{style:mn(8,'#2d3748',{marginBottom:8,letterSpacing:'0.12em'})},'30-DAY TASK BREAKDOWN'),
+        e('div',{style:mn(8,'#2d3748',{marginBottom:8,letterSpacing:'0.12em'})},'TASKS (LAST 30 DAYS)'),
         e('div',{style:{display:'flex',gap:8}},
           [{k:'body',c:'#22c55e',l:'BODY'},{k:'mind',c:'#4a9eff',l:'MIND'},{k:'soul',c:'#f97316',l:'SOUL'}].map(function(cat){
             var pct=Math.round(catCounts[cat.k]/totalTasks*100);
@@ -677,7 +677,7 @@ function SignalAnalytics(props) {
 
       // Skill bonuses active
       (skillBonuses.taskXPMult>1||skillBonuses.journalXPMult>1) && e('div',{style:{background:'rgba(139,92,246,0.06)',border:'1px solid #8b5cf622',borderRadius:8,padding:'10px 12px'}},
-        e('div',{style:mn(8,'#8b5cf6',{marginBottom:6,letterSpacing:'0.12em'})},'ACTIVE SKILL BONUSES'),
+        e('div',{style:mn(8,'#8b5cf6',{marginBottom:6,letterSpacing:'0.12em'})},'SKILL BONUSES ACTIVE'),
         e('div',{style:{display:'flex',gap:10}},
           skillBonuses.taskXPMult>1 && e('div',{style:{fontSize:10,color:'#e2e8f0',fontFamily:"'DM Mono',monospace"}},
             e('span',{style:{color:'#f97316'}},'FORT '),'+'+Math.round((skillBonuses.taskXPMult-1)*100)+'% task XP'
@@ -701,7 +701,7 @@ function PatternAlertCard(props) {
   return e('div', { style:Object.assign({}, card, { borderColor:col+'55', marginBottom:12 }) },
     e('div', { style:Object.assign({}, cardH, { borderBottomColor:col+'22' }) },
       e('span', { style:mn(9,col,{fontWeight:700}) }, '◈ PATTERN ALERT'),
-      e('span', { style:mn(8,col,{opacity:0.7,letterSpacing:'0.15em'}) }, alert.severity.toUpperCase())
+      e('span', { style:mn(8,col,{opacity:0.7,letterSpacing:'0.15em'}) }, alert.severity==='critical'?'Important':alert.severity==='warning'?'Notice':alert.severity==='positive'?'Great news':'Insight')
     ),
     e('div', { style:{ padding:'12px 15px' } },
       e('div', { style:{ fontSize:13, fontWeight:700, color:'#e2e8f0', marginBottom:6, fontFamily:"'DM Mono',monospace" } }, alert.title),
@@ -709,7 +709,7 @@ function PatternAlertCard(props) {
       alert.action && e('button', {
         onClick: function() { onAction(alert.action); },
         style:{ padding:'7px 14px', background:col+'18', border:'1px solid '+col+'55', borderRadius:8, fontSize:9, color:col, fontFamily:"'DM Mono',monospace", fontWeight:700, letterSpacing:'0.12em', cursor:'pointer' }
-      }, alert.action === 'OPEN_JOURNAL' ? 'OPEN JOURNAL' : 'OPEN TASKS')
+      }, alert.action === 'OPEN_JOURNAL' ? 'Open Journal' : 'Go to Tasks')
     )
   );
 }
@@ -733,7 +733,7 @@ function HomeTab(props) {
   var stats={body:s.bodyScore||0,mind:s.mindScore||0,soul:s.soulScore||0};
   var mx=Math.max(stats.body,stats.mind,stats.soul,1);
   var totalScore=stats.body+stats.mind+stats.soul;
-  var FOCUS_META={body:{c:'#22c55e',l:'BODY-LEANED'},mind:{c:'#4a9eff',l:'MIND-LEANED'},soul:{c:'#f97316',l:'SOUL-LEANED'}};
+  var FOCUS_META={body:{c:'#22c55e',l:'Body Focus'},mind:{c:'#4a9eff',l:'Mind Focus'},soul:{c:'#f97316',l:'Soul Focus'}};
   var focusKey=totalScore===0?null:(stats.body>=stats.mind&&stats.body>=stats.soul?'body':(stats.mind>=stats.soul?'mind':'soul'));
   var focusColor=focusKey?FOCUS_META[focusKey].c:null;
   var streak=s.streak||0;
@@ -742,7 +742,7 @@ function HomeTab(props) {
   var MOODS={CLEAR:{c:'#22c55e',l:'POSITIVE'},REFLECTIVE:{c:'#4a9eff',l:'REFLECTIVE'},HEAVY:{c:'#f97316',l:'HEAVY'},HEAT:{c:'#ef4444',l:'TURBULENT'}};
   var lastMood=lastEntry&&lastEntry.mood?MOODS[lastEntry.mood]:null;
   var nextMil=null;
-  var milestones=[{days:1,label:'First Hold'},{days:3,label:'3-Day Lock'},{days:7,label:'One Week'},{days:14,label:'Fortnight'},{days:30,label:'30-Day Protocol'},{days:60,label:'Signal Silence'}];
+  var milestones=[{days:1,label:'First Day'},{days:3,label:'3-Day Streak'},{days:7,label:'One Week'},{days:14,label:'Two Weeks'},{days:30,label:'30-Day Streak'},{days:60,label:'60-Day Streak'}];
   for (var i=0;i<milestones.length;i++){if(milestones[i].days>streak){nextMil=milestones[i];break;}}
   var todayTasks=Object.keys(s.completedToday||{}).length;
   var unlocked=s.unlockedAchievements||[];
@@ -758,10 +758,10 @@ function HomeTab(props) {
   var dailyLeft=dailyTasks.length-dailyTasks.filter(function(t){return (s.completedToday||{})[t.id];}).length;
   var journaledToday=(s.journalEntries||[]).some(function(j){return j.date===todayKey2;});
   var directive=dailyLeft>0
-    ? {label:'Daily Protocol',msg:dailyLeft+' task'+(dailyLeft>1?'s':'')+" left in today's protocol.",cta:'GO TO TASKS',tab:'TASKS',color:'#22c55e'}
+    ? {label:'Up Next',msg:dailyLeft+' task'+(dailyLeft>1?'s':'')+' left for today.',cta:'Go to Tasks',tab:'TASKS',color:'#22c55e'}
     : !journaledToday
-      ? {label:'Vent Canvas',msg:'No transmission logged today — clear your signal.',cta:'OPEN JOURNAL',tab:'JOURNAL',color:'#4a9eff'}
-      : {label:'Aligned',msg:'All protocols clear. Channel momentum into Clarity.',cta:'ENTER CLARITY',tab:'SIGNALS',color:'#06b6d4'};
+      ? {label:'Journal',msg:"You haven't written today — take a few minutes to check in.",cta:'Open Journal',tab:'JOURNAL',color:'#4a9eff'}
+      : {label:'All Clear',msg:"You're all caught up. Keep the momentum going with Clarity.",cta:'Open Clarity',tab:'SIGNALS',color:'#06b6d4'};
   var s1=useState(false); var showAch=s1[0],setShowAch=s1[1];
 
   return e('div',{style:{display:'flex',flexDirection:'column',animation:'fadeUp 0.35s ease'}},
@@ -773,7 +773,7 @@ function HomeTab(props) {
     // Core Entity hero
     e('div',{style:Object.assign({},card,{background:'linear-gradient(145deg,#0a0e1a,#0d1220)'})},
       e('div',{style:cardH},
-        e('span',{style:mn(9,'#94a3b8',{fontWeight:700})},'CORE ENTITY'),
+        e('span',{style:mn(9,'#94a3b8',{fontWeight:700})},'YOUR PROGRESS'),
         e('span',{style:mn(9,tier.color,{fontWeight:700})},tier.title.toUpperCase())
       ),
       e('div',{style:{padding:'20px 16px',display:'flex',alignItems:'center',gap:16}},
@@ -788,11 +788,11 @@ function HomeTab(props) {
           ),
           e('div',{style:{fontSize:12,color:'#475569',marginBottom:14,lineHeight:1.5}},tier.desc),
           e('div',{style:{marginBottom:12}},
-            e('div',{style:row({justifyContent:'space-between',marginBottom:4})},e('span',{style:mn(8,'#2d3748')},'FORM XP'),e('span',{style:mn(8,tier.color)},lvlXP+'/'+props.XPL)),
+            e('div',{style:row({justifyContent:'space-between',marginBottom:4})},e('span',{style:mn(8,'#2d3748')},'XP THIS LEVEL'),e('span',{style:mn(8,tier.color)},lvlXP+'/'+props.XPL)),
             e('div',{style:{height:5,background:'#0f1520',borderRadius:3,overflow:'hidden'}},
               e('div',{style:{height:'100%',width:pct+'%',background:tier.color,borderRadius:3,transition:'width 1s ease',boxShadow:'0 0 8px '+tier.glow}})
             ),
-            e('div',{style:mn(8,'#2d3748',{marginTop:3})},level<24?(props.XPL-lvlXP)+' XP to next level':'MAXIMUM FORM')
+            e('div',{style:mn(8,'#2d3748',{marginTop:3})},level<24?(props.XPL-lvlXP)+' XP to level up':'Maximum level reached')
           ),
           e('div',{style:{position:'relative'}},
             e('div',{style:{display:'flex',gap:8,filter:isVIP?'none':'blur(4px)',userSelect:isVIP?'auto':'none',pointerEvents:isVIP?'auto':'none',transition:'filter 0.3s'}},
@@ -801,7 +801,7 @@ function HomeTab(props) {
               e(StatBar,{label:'SOUL',val:stats.soul,max:mx,color:'#f97316'})
             ),
             !isVIP && e('div',{onClick:onNeedVIP,style:{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}},
-              e('div',{style:{padding:'4px 10px',background:'rgba(139,92,246,0.15)',border:'1px solid #8b5cf655',borderRadius:8,fontSize:9,color:'#8b5cf6',fontFamily:"'DM Mono',monospace",fontWeight:700,letterSpacing:'0.1em'}},'◈ VIP — UNLOCK ANALYTICS')
+              e('div',{style:{padding:'4px 10px',background:'rgba(139,92,246,0.15)',border:'1px solid #8b5cf655',borderRadius:8,fontSize:9,color:'#8b5cf6',fontFamily:"'DM Mono',monospace",fontWeight:700,letterSpacing:'0.1em'}},'VIP — Unlock Stats')
             )
           )
         )
@@ -811,7 +811,7 @@ function HomeTab(props) {
     // Directive — the single most impactful next action, cross-module
     e('div',{style:Object.assign({},card,{borderColor:directive.color+'44'})},
       e('div',{style:cardH},
-        e('span',{style:mn(9,'#94a3b8',{fontWeight:700})},'DIRECTIVE'),
+        e('span',{style:mn(9,'#94a3b8',{fontWeight:700})},'WHAT\'S NEXT'),
         e('span',{style:mn(9,directive.color,{fontWeight:700})},directive.label.toUpperCase())
       ),
       e('div',{style:{padding:'14px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}},
@@ -822,7 +822,7 @@ function HomeTab(props) {
 
     // Status strip
     e('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10,marginBottom:12}},
-      [{label:'STREAK',val:streak+'d',color:'#f97316'},{label:'TASKS TODAY',val:todayTasks,color:'#22c55e'},{label:'TOTAL XP',val:s.totalXP||0,color:tier.color}].map(function(item){
+      [{label:'STREAK',val:streak+'d',color:'#f97316'},{label:'TODAY\'S TASKS',val:todayTasks,color:'#22c55e'},{label:'TOTAL XP',val:s.totalXP||0,color:tier.color}].map(function(item){
         return e('div',{key:item.label,style:{background:'#0a0e1a',border:'1px solid #151e30',borderRadius:12,padding:'12px 14px'}},
           e('div',{style:mn(7,'#2d3748',{marginBottom:5})},item.label),
           e('div',{style:{fontSize:15,fontWeight:700,color:item.color,fontFamily:"'DM Mono',monospace",lineHeight:1}},String(item.val))
@@ -833,15 +833,15 @@ function HomeTab(props) {
     // Signal summary — live cross-module snapshot
     e('div',{style:card},
       e('div',{style:cardH},
-        e('span',{style:mn(9,'#94a3b8',{fontWeight:700})},'SIGNAL SUMMARY'),
-        e('span',{style:mn(9,streakMultPct>0?'#f97316':'#2d3748',{fontWeight:700})},streakMultPct>0?'STREAK ×'+(getStreakMult(streak)).toFixed(2):'NO STREAK BONUS')
+        e('span',{style:mn(9,'#94a3b8',{fontWeight:700})},'TODAY\'S STATS'),
+        e('span',{style:mn(9,streakMultPct>0?'#f97316':'#2d3748',{fontWeight:700})},streakMultPct>0?'Streak ×'+(getStreakMult(streak)).toFixed(2):'No streak bonus yet')
       ),
       e('div',{style:{padding:'12px 14px'}},
         e('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:12}},
-          [{label:'CLARITY RATE',val:(clarityRate>=1?clarityRate.toFixed(1):clarityRate.toFixed(2))+'/s',color:'#4a9eff'},
+          [{label:'CLARITY/SEC',val:(clarityRate>=1?clarityRate.toFixed(1):clarityRate.toFixed(2))+'/s',color:'#4a9eff'},
            {label:'STREAK BONUS',val:'+'+streakMultPct+'%',color:'#f97316'},
            {label:'TASKS TODAY',val:String(Object.keys(s.completedToday||{}).length),color:'#22c55e'},
-           {label:'ENTRIES',val:String((s.journalEntries||[]).length),color:'#a78bfa'},
+           {label:'JOURNAL ENTRIES',val:String((s.journalEntries||[]).length),color:'#a78bfa'},
           ].map(function(item){
             return e('div',{key:item.label,style:{background:'#0a0e1a',border:'1px solid #151e30',borderRadius:10,padding:'10px 12px'}},
               e('div',{style:mn(7,'#2d3748',{marginBottom:5})},item.label),
@@ -850,14 +850,14 @@ function HomeTab(props) {
           })
         ),
         e('div',{style:row({justifyContent:'space-between',padding:'10px 12px',background:'#080b12',border:'1px solid #0f1520',borderRadius:10})},
-          e('span',{style:mn(8,'#475569')},'LAST TRANSMISSION'),
+          e('span',{style:mn(8,'#475569')},'LAST JOURNAL ENTRY'),
           lastEntry
             ? e('div',{style:row({gap:8})},
                 e('div',{style:{width:7,height:7,borderRadius:'50%',background:lastMood?lastMood.c:'#94a3b8'}}),
                 e('span',{style:mn(8,lastMood?lastMood.c:'#94a3b8',{fontWeight:700})},lastMood?lastMood.l:'AMBIENT'),
                 e('span',{style:mn(8,'#2d3748')},lastEntry.date)
               )
-            : e('span',{style:mn(8,'#2d3748')},'NONE YET')
+            : e('span',{style:mn(8,'#2d3748')},'None yet')
         )
       )
     ),
@@ -865,8 +865,8 @@ function HomeTab(props) {
     // Weekly momentum — every module feeds one shared weekly goal
     e('div',{style:card},
       e('div',{style:cardH},
-        e('span',{style:mn(9,'#94a3b8',{fontWeight:700})},'WEEKLY MOMENTUM'),
-        e('span',{style:mn(9,weekPct>=100?'#22c55e':'#2d3748',{fontWeight:700})},weekPct>=100?'GOAL MET ◆':daysLeft+'d LEFT')
+        e('span',{style:mn(9,'#94a3b8',{fontWeight:700})},'THIS WEEK'),
+        e('span',{style:mn(9,weekPct>=100?'#22c55e':'#2d3748',{fontWeight:700})},weekPct>=100?'Goal met ✓':daysLeft+'d left')
       ),
       e('div',{style:{padding:'12px 14px'}},
         e('div',{style:row({justifyContent:'space-between',marginBottom:7})},
@@ -882,7 +882,7 @@ function HomeTab(props) {
 
     // Evolution track
     e('div',{style:card},
-      e('div',{style:cardH},e('span',{style:mn(9,'#94a3b8',{fontWeight:700})},'EVOLUTION TRACK')),
+      e('div',{style:cardH},e('span',{style:mn(9,'#94a3b8',{fontWeight:700})},'YOUR JOURNEY')),
       e('div',{style:{padding:'12px 14px',display:'flex',gap:5}},
         TIERS.map(function(t2,i){
           var reached=level>=t2.min, current=tier.title===t2.title;
@@ -899,7 +899,7 @@ function HomeTab(props) {
     // Next milestone
     e('div',{style:Object.assign({},card,{padding:'13px 15px'})},
       e('div',{style:row({justifyContent:'space-between',marginBottom:8})},
-        e('span',{style:mn(9,'#94a3b8',{fontWeight:700})},'NEXT MILESTONE'),
+        e('span',{style:mn(9,'#94a3b8',{fontWeight:700})},'NEXT GOAL'),
         e('span',{style:mn(9,'#2d3748')},streak+'d streak')
       ),
       nextMil
@@ -916,7 +916,7 @@ function HomeTab(props) {
     // Achievements card
     e('div',{style:card},
       e('div',{style:cardH},
-        e('span',{style:mn(9,'#94a3b8',{fontWeight:700})},'SYSTEM UNLOCKS'),
+        e('span',{style:mn(9,'#94a3b8',{fontWeight:700})},'ACHIEVEMENTS'),
         e('button',{onClick:function(){setShowAch(true);},style:{background:'transparent',border:'none',fontSize:9,color:'#4a9eff',fontFamily:"'DM Mono',monospace",letterSpacing:'0.1em',cursor:'pointer'}},unlocked.length+'/'+ACHIEVEMENTS.length+' · VIEW ALL')
       ),
       e('div',{style:{padding:'12px 14px'}},

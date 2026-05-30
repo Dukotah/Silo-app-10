@@ -18,8 +18,8 @@ var e = React.createElement;
 // ─── STYLE HELPERS ────────────────────────────────────────────────────────────
 function mn(sz, cl, x) { return Object.assign({ fontFamily:"'DM Mono',monospace", fontSize:sz, color:cl, letterSpacing:'0.08em' }, x||{}); }
 function row(x) { return Object.assign({ display:'flex', alignItems:'center' }, x||{}); }
-var card = { background:'#161b27', border:'1px solid #1d2740', borderRadius:16, overflow:'hidden', marginBottom:12 };
-var cardH = { display:'flex', alignItems:'center', justifyContent:'space-between', padding:'11px 15px', borderBottom:'1px solid #161f32', background:'#11151f' };
+var card = { background:'#1a2030', border:'1px solid #243050', borderRadius:16, overflow:'hidden', marginBottom:12 };
+var cardH = { display:'flex', alignItems:'center', justifyContent:'space-between', padding:'11px 15px', borderBottom:'1px solid #161f32', background:'#161d2e' };
 
 // ─── DAILY REFLECTION PROMPTS ─────────────────────────────────────────────────
 var PROMPTS = {
@@ -49,11 +49,11 @@ var PROMPTS = {
 
 // ─── JOURNAL MODES (progressive unlocks) ─────────────────────────────────────
 var JOURNAL_MODES = [
-  { id:'vent',      label:'VENT CANVAS',    icon:'◈', desc:'Freeform. No structure. Just transmit.', unlockAt:0 },
-  { id:'daily',     label:'DAILY SIGNAL',   icon:'◆', desc:'Guided daily reflection with mood check-in.', unlockAt:1 },
-  { id:'deep',      label:'DEEP DIVE',      icon:'◉', desc:'Structured deep reflection. High XP.', unlockAt:3 },
-  { id:'gratitude', label:'GRATITUDE SCAN', icon:'◇', desc:'Rewire toward signal. Gratitude as clarity.', unlockAt:5 },
-  { id:'signal',    label:'SIGNAL BURST',   icon:'⬡', desc:'Raw, unfiltered transmission. Max XP.', unlockAt:7 },
+  { id:'vent',      label:'Free Write',   icon:'◈', desc:'No structure, no rules. Just write whatever is on your mind.', unlockAt:0 },
+  { id:'daily',     label:'Daily Reflection', icon:'◆', desc:'A guided daily check-in with mood tracking.', unlockAt:1 },
+  { id:'deep',      label:'Deep Dive',    icon:'◉', desc:'Structured questions for deeper self-reflection. High XP.', unlockAt:3 },
+  { id:'gratitude', label:'Gratitude',    icon:'◇', desc:'Shift your focus to what is going well.', unlockAt:5 },
+  { id:'signal',    label:'Quick Vent',   icon:'⬡', desc:'Raw and unfiltered. Say exactly what you mean. Max XP.', unlockAt:7 },
 ];
 
 // ─── MOOD OPTIONS ─────────────────────────────────────────────────────────────
@@ -100,11 +100,11 @@ function generateReflection(text, mood) {
       "Turbulence logged. What would you say to someone you love who was feeling exactly this way?",
     ],
     REFLECTIVE: [
-      "Deep scan complete. You're processing something important. What's the insight you're circling but haven't landed?",
+      "You're processing something important. What insight are you circling but haven't quite landed yet?",
       "Keep going — you're closer to clarity than you think. What do you already know here?",
     ],
     default: [
-      "Transmission logged. Every entry is a data point on who you're becoming. What did writing this reveal?",
+      "Every entry is a step forward. What did writing this reveal to you?",
       "You showed up. That's the whole game. What do you need most right now?",
     ],
   };
@@ -126,8 +126,8 @@ function TransmissionLog(props) {
 
   return e('div', { style:card },
     e('div', { style:cardH },
-      e('span', { style:mn(9,'#94a3b8',{fontWeight:700}) }, '◎ TRANSMISSION LOG'),
-      e('span', { style:mn(9,'#2d3748') }, entries.length + ' ENTRIES')
+      e('span', { style:mn(9,'#94a3b8',{fontWeight:700}) }, '◎ Your Entries'),
+      e('span', { style:mn(9,'#2d3748') }, entries.length + (entries.length===1?' entry':' entries'))
     ),
     entries.length > 0 && e('div', { style:{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:1, borderBottom:'1px solid #0f1520', background:'#080c14' } },
       [{ l:'ENTRIES', v:entries.length, c:'#4a9eff' }, { l:'WORDS', v:totalWords.toLocaleString(), c:'#22c55e' },
@@ -147,7 +147,7 @@ function TransmissionLog(props) {
     ),
     filtered.length === 0
       ? e('div', { style:{ padding:'28px 18px', textAlign:'center', color:'#2d3748', fontFamily:"'DM Mono',monospace", fontSize:11 } },
-          entries.length === 0 ? 'No transmissions logged yet. Begin your first entry.' : 'No entries match this filter.')
+          entries.length === 0 ? 'No entries yet. Write your first one!' : 'Nothing matches that filter.')
       : e('div', null, filtered.map(function(en, i) {
           var isOpen = expanded === en.id;
           var mc = SHIFT_COLORS[en.mood || en.primaryShift] || '#94a3b8';
@@ -183,7 +183,7 @@ function TransmissionLog(props) {
                 e('div', { style:{ fontSize:11, color:'#475569', fontFamily:"'DM Sans',sans-serif", fontStyle:'italic' } }, en.promptText)
               ),
               en.reflection && e('div', { style:{ marginTop:10, padding:'10px 12px', background:'rgba(74,158,255,0.06)', borderRadius:8, border:'1px solid rgba(74,158,255,0.2)' } },
-                e('div', { style:mn(7,'#4a9eff',{marginBottom:6,letterSpacing:'0.15em'}) }, '◈ SILO REFLECTION'),
+                e('div', { style:mn(7,'#4a9eff',{marginBottom:6,letterSpacing:'0.15em'}) }, 'Reflection'),
                 e('div', { style:{ fontSize:12, color:'#4a9eff', fontFamily:"'DM Sans',sans-serif", lineHeight:1.7, opacity:0.85 } }, en.reflection)
               ),
               en.clarityLevel && e('div', { style:{ marginTop:10, display:'flex', gap:8 } },
@@ -348,8 +348,8 @@ export function JournalTab(props) {
   }
 
   var placeholder = todayPrompt && activeMode !== 'vent'
-    ? todayPrompt.text + '\n\nBegin your transmission...'
-    : 'Begin transmission. Write anything — this space is entirely private and local.\nCommit to save analytics. Burn to vaporize completely.';
+    ? todayPrompt.text + '\n\nStart writing...'
+    : 'Write anything — this space is completely private and stays on your device.\nSave your entry to earn XP, or use Write & Release to let it go.';
 
   return e('div', { style:{ animation:'fadeUp 0.35s ease' } },
     e('style', null,
@@ -363,9 +363,9 @@ export function JournalTab(props) {
 
     // ── TOAST ──
     toast && e('div', { style:{ position:'fixed', top:20, right:20, zIndex:900, background:'#0a0e1a', border:'1px solid '+(toast.burned?'#ef444466':'#4a9eff44'), borderRadius:14, padding:'12px 16px', boxShadow:'0 0 24px '+(toast.burned?'rgba(239,68,68,0.2)':'rgba(74,158,255,0.2)'), animation:'siloSlideIn 0.3s ease', fontFamily:"'DM Mono',monospace", minWidth:220, maxWidth:320, zIndex:9999 } },
-      e('div', { style:mn(10, toast.burned?'#ef4444':'#4a9eff', {fontWeight:700, marginBottom:6, letterSpacing:'0.15em'}) }, toast.burned ? '◈ BURNED & PURGED' : '◆ TRANSMISSION LOGGED'),
+      e('div', { style:mn(10, toast.burned?'#ef4444':'#4a9eff', {fontWeight:700, marginBottom:6, letterSpacing:'0.15em'}) }, toast.burned ? '✓ Released' : '◆ Entry Saved'),
       !toast.burned && e('div', { style:{ fontSize:12, color:'#e2e8f0', marginBottom:4 } }, '+' + (toast.xp||0) + ' XP · +' + (toast.clarityAwarded||0) + ' CLARITY'),
-      toast.processing && e('div', { style:{ fontSize:10, color:'#4a9eff', opacity:0.7, animation:'siloPulse 1.5s ease infinite', fontFamily:"'DM Sans',sans-serif" } }, '◈ SILO reflecting...'),
+      toast.processing && e('div', { style:{ fontSize:10, color:'#4a9eff', opacity:0.7, animation:'siloPulse 1.5s ease infinite', fontFamily:"'DM Sans',sans-serif" } }, 'Generating your reflection...'),
       toast.reflection && e('div', { style:{ marginTop:8, padding:'8px 10px', background:'rgba(74,158,255,0.06)', borderRadius:8, fontSize:12, color:'#4a9eff', lineHeight:1.6, fontFamily:"'DM Sans',sans-serif", borderLeft:'2px solid #4a9eff44' } }, toast.reflection)
     ),
 
@@ -399,9 +399,9 @@ export function JournalTab(props) {
       e('div', { style:{ padding:'12px 16px', display:'flex', alignItems:'flex-start', gap:12 } },
         e('span', { style:{ fontSize:20, flexShrink:0, marginTop:2 } }, '◎'),
         e('div', { style:{ flex:1 } },
-          e('div', { style:mn(7, promptDone?'#22c55e':todayPrompt.color, {marginBottom:6,letterSpacing:'0.15em'}) }, promptDone ? "✓ TODAY'S PROMPT COMPLETE" : "TODAY'S " + activeModeData.label + " PROMPT"),
+          e('div', { style:mn(7, promptDone?'#22c55e':todayPrompt.color, {marginBottom:6,letterSpacing:'0.15em'}) }, promptDone ? "✓ Today's prompt done" : "Today's prompt"),
           e('div', { style:{ fontSize:14, color:promptDone?'#475569':'#cbd5e1', lineHeight:1.6, fontFamily:"'DM Sans',sans-serif", fontStyle:'italic' } }, todayPrompt.text),
-          !promptDone && e('div', { style:mn(8,'#2d3748',{marginTop:8}) }, 'Complete for +25 BONUS XP')
+          !promptDone && e('div', { style:mn(8,'#2d3748',{marginTop:8}) }, 'Answer for +25 bonus XP')
         )
       )
     ),
@@ -409,7 +409,7 @@ export function JournalTab(props) {
     // ── CURRENT STATE (mood + clarity) ──
     e('div', { style:card },
       e('div', { style:cardH },
-        e('span', { style:mn(9,'#94a3b8',{fontWeight:700}) }, '◈ CURRENT STATE'),
+        e('span', { style:mn(9,'#94a3b8',{fontWeight:700}) }, 'How You\'re Feeling'),
         moodObj && e('span', { style:mn(9, moodObj.color) }, moodObj.label)
       ),
       e('div', { style:{ padding:'4px 12px 12px', display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:6 } },
@@ -425,7 +425,7 @@ export function JournalTab(props) {
         })
       ),
       e('div', { style:{ padding:'0 12px 12px', borderTop:'1px solid #0a0d14' } },
-        e('div', { style:mn(8,'#2d3748',{padding:'8px 0 8px'}) }, 'MENTAL CLARITY LEVEL'),
+        e('div', { style:mn(8,'#2d3748',{padding:'8px 0 8px'}) }, 'Focus level (optional)'),
         e('div', { style:{ display:'flex', gap:4 } },
           CLARITY_LEVELS.map(function(cl) {
             var active = clarityLevel === cl.val;
@@ -469,21 +469,21 @@ export function JournalTab(props) {
       ),
       warnMsg && e('div', { style:{ margin:'0 16px 8px', padding:'8px 12px', background:'rgba(239,68,68,0.07)', border:'1px solid rgba(239,68,68,0.25)', borderRadius:8, fontSize:10, color:'#ef4444', fontFamily:"'DM Mono',monospace", letterSpacing:'0.06em', lineHeight:1.4 } }, '⚠ ' + warnMsg),
       patternEcho && e('div', { style:{ margin:'0 16px 8px', padding:'10px 14px', background:'rgba(167,139,250,0.06)', border:'1px solid rgba(167,139,250,0.2)', borderRadius:10, animation:'siloSlideIn 0.4s ease' } },
-        e('div', { style:{ fontFamily:"'DM Mono',monospace", fontSize:7, color:'#a78bfa', letterSpacing:'0.2em', marginBottom:6 } }, '◈ ECHO FROM ' + patternEcho.date),
+        e('div', { style:{ fontFamily:"'DM Mono',monospace", fontSize:7, color:'#a78bfa', letterSpacing:'0.2em', marginBottom:6 } }, 'You wrote something similar on ' + patternEcho.date),
         e('div', { style:{ fontSize:12, color:'#a78bfa', lineHeight:1.7, fontFamily:"'DM Sans',sans-serif", fontStyle:'italic', opacity:0.85 } }, '"' + patternEcho.text + '"')
       ),
       e('div', { style:{ padding:'6px 18px 10px', display:'flex', justifyContent:'space-between', alignItems:'center' } },
-        e('span', { style:mn(8,'#1e2a3a') }, text.length + ' CHARS · CTRL+ENTER TO COMMIT'),
-        aiLoading && e('span', { style:mn(8,'#4a9eff',{animation:'siloPulse 1.5s ease infinite'}) }, '◈ REFLECTING...')
+        e('span', { style:mn(8,'#1e2a3a') }, text.length + ' chars · Ctrl+Enter to save'),
+        aiLoading && e('span', { style:mn(8,'#4a9eff',{animation:'siloPulse 1.5s ease infinite'}) }, "Reflecting...")
       ),
       e('div', { style:{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:0, borderTop:'1px solid #0f1520' } },
         e('button', { onClick:doCommit, disabled:!canSubmit, style:{ padding:'14px 16px', background:canSubmit?'#0a1628':'#11151f', borderRight:'1px solid #161f32', display:'flex', flexDirection:'column', alignItems:'flex-start', gap:3, transition:'all 0.15s', cursor:canSubmit?'pointer':'default', minHeight:52, border:'none', borderRight:'1px solid #161f32' } },
-          e('span', { style:mn(10, canSubmit?'#4a9eff':'#1a2535', {fontWeight:700,letterSpacing:'0.15em'}) }, todayPrompt&&!promptDone ? '◆ COMMIT + DAILY' : '◆ COMMIT'),
-          e('span', { style:mn(8,'#2a3750',{letterSpacing:'0.08em'}) }, todayPrompt&&!promptDone ? 'SAVE + BONUS XP · REFLECTION' : 'SAVE ANALYTICS · GRANT XP · REFLECTION')
+          e('span', { style:mn(10, canSubmit?'#4a9eff':'#1a2535', {fontWeight:700,letterSpacing:'0.15em'}) }, todayPrompt&&!promptDone ? '◆ Save + Bonus' : '◆ Save Entry'),
+          e('span', { style:mn(8,'#2a3750',{letterSpacing:'0.08em'}) }, todayPrompt&&!promptDone ? 'Save entry + bonus XP' : 'Save entry · Earn XP · Get reflection')
         ),
         e('button', { onClick:doBurn, disabled:!canSubmit, style:{ padding:'14px 16px', background:canSubmit?'#150806':'#080b12', display:'flex', flexDirection:'column', alignItems:'flex-start', gap:3, transition:'all 0.15s', cursor:canSubmit?'pointer':'default', minHeight:52, border:'none' } },
-          e('span', { style:mn(10, canSubmit?'#ef4444':'#1a2535', {fontWeight:700,letterSpacing:'0.15em'}) }, '◈ BURN & PURGE'),
-          e('span', { style:mn(8,'#1e2a3a',{letterSpacing:'0.08em'}) }, 'VAPORIZE · GRANT XP')
+          e('span', { style:mn(10, canSubmit?'#ef4444':'#1a2535', {fontWeight:700,letterSpacing:'0.15em'}) }, '✦ Write & Release'),
+          e('span', { style:mn(8,'#1e2a3a',{letterSpacing:'0.08em'}) }, 'Write it out · Let it go · Earn XP')
         )
       )
     ),
