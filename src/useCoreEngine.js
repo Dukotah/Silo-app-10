@@ -176,12 +176,26 @@ export function getTaskStreak(taskId, taskLog, freq) {
 // ─── DEFAULT STATE ────────────────────────────────────────────────────────────
 function defaults() {
   return {
-    totalXP:              0,
+    totalXP:              25,
     log:                  [],
     streak:               0,
     lastDate:             null,
     weeklyShifts:         {},
-    journalEntries:       [],
+    journalEntries:       [{
+      id: 1,
+      date: new Date().toISOString().slice(0,10),
+      time: '09:00 AM',
+      text: "First transmission. I don't know exactly where I'm headed, but I know I need to build something better than what I've had. This is day one. I'm not going to overthink it — I'm just going to show up, log the signal, and see what compounds. That's the protocol.",
+      mood: 'REFLECTIVE',
+      tone: 'reflective',
+      xp: 25,
+      wordCount: 48,
+      charCount: 280,
+      primaryShift: 'REFLECTIVE',
+      shiftLabel: 'Reflective',
+      shiftColor: '#4a9eff',
+      action: 'commit',
+    }],
     tasks:                TASK_TEMPLATES.slice(0, 8),
     taskLog:              [],
     completedToday:       {},

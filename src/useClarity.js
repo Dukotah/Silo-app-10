@@ -113,8 +113,8 @@ export function calcEchoMult(echoPerks) {
 // --- PERSISTENCE -------------------------------------------------------------
 function defaultState() {
   return {
-    clarity: 0,
-    totalEarned: 0,
+    clarity: 75,
+    totalEarned: 75,
     counts: { focus:0, spark:0, signal:0, weaver:0, resonance:0, pulse:0, cascade:0, lattice:0, sovereign:0 },
     tapLevel: 0,
     shopCounts: { condenser:0, amplifier:0, prism:0, nexus:0 },

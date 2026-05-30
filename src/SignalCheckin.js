@@ -51,8 +51,19 @@ export function useSignalCheckin() {
   return { todayId, todayObj:todayId?getStateObj(todayId):null, doCheckin, getStateObj, history:raw.history||[] };
 }
 
+var SIGNAL_TOOLTIPS = [
+  { id:'flat',       color:'#475569', label:'FLAT',       tip:'Heavy, drained, or numb. Signal is down. Still counts — showing up matters most here.' },
+  { id:'flickering', color:'#f97316', label:'FLICKERING', tip:'Low energy or foggy but present. Something is stirring. Standard XP day.' },
+  { id:'steady',     color:'#4a9eff', label:'STEADY',     tip:'Grounded and functional. Good signal. +20% XP boost today.' },
+  { id:'strong',     color:'#22c55e', label:'STRONG',     tip:'Clear, motivated, locked in. Full transmission. +50% XP boost today.' },
+];
+
 // SIGNAL CHECK-IN MODAL
 export function SignalCheckinModal(props) {
+  var tooltipStateArr = useState(false);
+  var showTooltips = tooltipStateArr[0];
+  var setShowTooltips = tooltipStateArr[1];
+
   if (!props.show) return null;
   return e('div',{style:{position:'fixed',inset:0,zIndex:950,background:'rgba(0,0,0,0.88)',display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(10px)'}},
     e('div',{onClick:function(ev){ev.stopPropagation();},style:{maxWidth:360,width:'100%',margin:'0 16px',background:'rgba(8,12,20,0.99)',border:'1px solid #1d2740',borderRadius:18,padding:'32px 22px',animation:'scaleIn 0.35s cubic-bezier(0.34,1.56,0.64,1)'}},
@@ -60,6 +71,22 @@ export function SignalCheckinModal(props) {
         e('div',{style:{fontSize:10,color:'#4a9eff',letterSpacing:'0.25em',fontFamily:'"DM Mono",monospace',marginBottom:12}},'SIGNAL CHECK-IN'),
         e('div',{style:{fontSize:22,fontWeight:700,color:'#e2e8f0',lineHeight:1.3,marginBottom:8}},'How is the signal today?'),
         e('div',{style:{fontSize:12,color:'#475569',lineHeight:1.6}},"Your answer shapes the day's resonance and XP multiplier.")
+      ),
+      e('div',{style:{marginBottom:12}},
+        e('button',{onClick:function(){setShowTooltips(!showTooltips);},style:{background:'none',border:'none',cursor:'pointer',fontSize:9,color:'#475569',letterSpacing:'0.15em',fontFamily:'"DM Mono",monospace',padding:'2px 0',display:'block',marginBottom: showTooltips ? 8 : 0}},
+          (showTooltips ? '▾' : '▸') + ' WHAT DO THESE MEAN?'
+        ),
+        showTooltips ? e('div',{style:{background:'rgba(74,158,255,0.05)',borderRadius:8,padding:'10px 12px',marginBottom:8,display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px 10px'}},
+          SIGNAL_TOOLTIPS.map(function(t){
+            return e('div',{key:t.id,style:{display:'flex',flexDirection:'column',gap:3}},
+              e('div',{style:{display:'flex',alignItems:'center',gap:5}},
+                e('div',{style:{width:7,height:7,borderRadius:'50%',background:t.color,flexShrink:0}}),
+                e('span',{style:{fontSize:9,fontWeight:700,color:t.color,fontFamily:'"DM Mono",monospace',letterSpacing:'0.1em'}},t.label)
+              ),
+              e('div',{style:{fontSize:10,color:'#64748b',lineHeight:1.5}},t.tip)
+            );
+          })
+        ) : null
       ),
       e('div',{style:{display:'flex',flexDirection:'column',gap:9}},
         SIGNAL_STATES.map(function(s){

@@ -20,6 +20,7 @@ import { JournalTab } from './JournalTab.js';
 import { useSkillTree, computeSkillBonuses } from './useSkillTree.js';
 import { useSignalIntelligence } from './useSignalIntelligence.js';
 import { SignalWeather } from './SignalWeather.js';
+import { Onboarding, hasOnboarded } from './Onboarding.js';
 
 var e         = React.createElement;
 var useState  = React.useState;
@@ -1028,6 +1029,7 @@ function Shell() {
   var s4=useState(false);   var showUrge=s4[0],setShowUrge=s4[1];
   var s5=useState(false);   var edgeFlash=s5[0],setEdgeFlash=s5[1];
   var s6=useState(false);   var showResetConfirm=s6[0],setShowResetConfirm=s6[1];
+  var s7=useState(function(){return !hasOnboarded();}); var showOnboarding=s7[0],setShowOnboarding=s7[1];
   var intelligence=useSignalIntelligence(signal.history, engine.state?engine.state.journalEntries:[], engine.state?engine.state.taskLog:[]);
   var clarity=useClarity(engine.state, vip.isVIP, intelligence.clarityMod);
   var signalXPMult=(signal.todayObj ? signal.todayObj.xpMult : 1) * (signal.todayObj ? 1 + skillBonuses.signalBoost : 1);
@@ -1116,6 +1118,8 @@ function Shell() {
 
   return e('div',{style:{minHeight:'100vh',background:temporalConfig.bg,color:'#e2e8f0',fontFamily:"'DM Sans',sans-serif",transition:'background 3s ease'}},
     e('style',null,CSS),
+    // First-launch onboarding
+    showOnboarding && e(Onboarding,{onComplete:function(){setShowOnboarding(false);}}),
     // Edge-flash overlay on level up
     edgeFlash && e('div',{style:{position:'fixed',inset:0,zIndex:9999,pointerEvents:'none',background:'radial-gradient(ellipse at center, '+tier.color+'22 0%, transparent 70%)',border:'2px solid '+tier.color+'66',animation:'edgeFlash 1.2s ease-out forwards'},key:'ef'}),
     // Reset confirmation modal
@@ -1131,7 +1135,7 @@ function Shell() {
     ),
     e(VIPModal,{open:showVIP,onClose:function(){setShowVIP(false);},onUpgrade:vip.upgrade,onRestore:vip.restorePurchases}),
     e(UrgeModal,{open:showUrge,onClose:function(){setShowUrge(false);},isVIP:vip.isVIP,canUse:urgeCanUse(),onNeedVIP:function(){setShowUrge(false);setShowVIP(true);},onMarkUsed:markUrgeUsed}),
-      e(SignalCheckinModal,{show:showCheckin&&!signal.todayId,onSelect:function(s){signal.doCheckin(s);setShowCheckin(false);}}),
+      e(SignalCheckinModal,{show:!showOnboarding&&showCheckin&&!signal.todayId,onSelect:function(s){signal.doCheckin(s);setShowCheckin(false);}}),
       e(EvolutionRevealModal,{tier:evReveal,onClose:function(){setEvReveal(null);}}),
     e(EvolveModal,{tier:engine.evolution,onClose:engine.dismissEvolution}),
     e(AchievementToast,{data:engine.newAchievement,onClose:engine.dismissAchievement}),
