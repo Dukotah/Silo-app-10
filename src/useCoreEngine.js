@@ -381,11 +381,14 @@ export function CoreProvider(props) {
   }
 
   function createTask(def) {
+    // Allow caller to pre-set an id (needed so notifications can reference the same id)
+    var taskId = def.id || ('custom_' + Date.now());
     setState(function(prev) {
       if (!prev) return prev;
-      var task = Object.assign({ id:'custom_'+Date.now() }, def);
+      var task = Object.assign({ id: taskId }, def);
       return Object.assign({}, prev, { tasks: (prev.tasks||[]).concat([task]) });
     });
+    return taskId;
   }
 
   function deleteTask(taskId) {

@@ -21,6 +21,7 @@ import { useSkillTree, computeSkillBonuses } from './useSkillTree.js';
 import { useSignalIntelligence } from './useSignalIntelligence.js';
 import { SignalWeather } from './SignalWeather.js';
 import { Onboarding, hasOnboarded } from './Onboarding.js';
+import { scheduleTaskReminder, cancelTaskReminder, requestNotifPermission, isAvailable as notifAvailable } from './useNotifications.js';
 
 var e         = React.createElement;
 var useState  = React.useState;
@@ -275,10 +276,12 @@ function TaskCreateModal(props) {
   var s4=useState(1);            var diff=s4[0],setDiff=s4[1];
   var s5=useState(50);           var xp=s5[0],setXp=s5[1];
   var s6=useState(false);        var showLib=s6[0],setShowLib=s6[1];
+  var s7=useState(false);        var reminderOn=s7[0],setReminderOn=s7[1];
+  var s8=useState('08:00');      var reminderTime=s8[0],setReminderTime=s8[1];
 
   // Reset form when modal opens
   useEffect(function() {
-    if (props.open) { setName('NEW TASK'); setCat('body'); setFreq('daily'); setDiff(1); setXp(50); setShowLib(false); }
+    if (props.open) { setName('NEW TASK'); setCat('body'); setFreq('daily'); setDiff(1); setXp(50); setShowLib(false); setReminderOn(false); setReminderTime('08:00'); }
   }, [props.open]);
 
   // Conditional return AFTER all hooks
@@ -286,10 +289,17 @@ function TaskCreateModal(props) {
 
   var existingIds=(props.existingIds||[]);
   var availableTemplates=TASK_TEMPLATES.filter(function(t){ return existingIds.indexOf(t.id)===-1; });
+  var showNotifOption = notifAvailable();
 
   function doCreate() {
     if (!name.trim()) return;
-    props.onCreate({ name:name.trim(), cat:cat, freq:freq, diff:diff, xp:xp, desc:'' });
+    var taskDef = { name:name.trim(), cat:cat, freq:freq, diff:diff, xp:xp, desc:'', reminderTime: reminderOn ? reminderTime : null };
+    var taskId = props.onCreate(taskDef);
+    if (reminderOn && reminderTime && taskId) {
+      requestNotifPermission().then(function(granted) {
+        if (granted) scheduleTaskReminder(taskId, name.trim(), reminderTime, freq);
+      });
+    }
     props.onClose();
   }
   function addTemplate(tmpl) {
@@ -353,6 +363,31 @@ function TaskCreateModal(props) {
             e('div',{style:row({gap:10})},
               e('input',{type:'range',min:10,max:200,step:5,value:xp,onChange:function(ev){setXp(Number(ev.target.value));},style:{flex:1,accentColor:'#4a9eff'}}),
               e('div',{style:{minWidth:40,textAlign:'right',fontSize:13,fontWeight:700,color:'#4a9eff',fontFamily:"'DM Mono',monospace"}},xp+' XP')
+            )
+          ),
+          // Reminder
+          cond(showNotifOption,
+            e('div',null,
+              e('div',{style:mn(9,'#475569',{marginBottom:6,letterSpacing:'0.15em'})},'REMINDER'),
+              e('div',{style:{display:'flex',alignItems:'center',gap:10}},
+                e('button',{
+                  onClick:function(){setReminderOn(!reminderOn);},
+                  style:{display:'flex',alignItems:'center',gap:8,padding:'10px 14px',background:reminderOn?'rgba(74,158,255,0.1)':'#080b12',border:'1px solid '+(reminderOn?'#4a9eff':'#0f1520'),borderRadius:10,cursor:'pointer',flex:1,transition:'all 0.15s'}
+                },
+                  e('div',{style:{width:16,height:16,borderRadius:4,background:reminderOn?'#4a9eff':'#1d2740',border:'1px solid '+(reminderOn?'#4a9eff':'#2d3748'),display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s',flexShrink:0}},
+                    reminderOn ? e('div',{style:{width:8,height:8,background:'#0d1117',borderRadius:2}}) : null
+                  ),
+                  e('span',{style:{fontSize:10,color:reminderOn?'#4a9eff':'#475569',fontFamily:"'DM Mono',monospace",letterSpacing:'0.1em'}},reminderOn?'NOTIFY ME':'NO REMINDER')
+                ),
+                cond(reminderOn,
+                  e('input',{
+                    type:'time',
+                    value:reminderTime,
+                    onChange:function(ev){setReminderTime(ev.target.value);},
+                    style:{padding:'10px 12px',background:'#080b12',border:'1px solid #1e3a5f',borderRadius:10,fontSize:13,color:'#e2e8f0',fontFamily:"'DM Mono',monospace",minWidth:110,colorScheme:'dark'}
+                  })
+                )
+              )
             )
           ),
           // Create button
@@ -805,6 +840,8 @@ function TasksTab(props) {
     var clr=Math.round(clarityForTask(task)*getStreakMult(state.streak||0)*signalXPMult);
     engine.logTask(task, signalXPMult * skillTaskMult);
     onClarityReward(clr);
+    // Cancel reminder for once-type tasks on completion (daily reminders keep firing)
+    if (task.reminderTime && task.freq === 'once') cancelTaskReminder(task.id);
     if(timerRef.current)clearTimeout(timerRef.current);
     setToastClarity(clr);
     setToastTask(task);
@@ -839,7 +876,11 @@ function TasksTab(props) {
       e('div',null,
         items.map(function(task){
           var done=!!(compMap[task.id]);
-          return e(TaskItem,{key:task.id,task:task,done:done,taskLog:taskLog,onLog:doLog,onDelete:function(id){engine.deleteTask(id);}});
+          return e(TaskItem,{key:task.id,task:task,done:done,taskLog:taskLog,onLog:doLog,onDelete:function(id){
+  var t=(tasks||[]).find(function(x){return x.id===id;});
+  if(t&&t.reminderTime) cancelTaskReminder(id);
+  engine.deleteTask(id);
+}});
         })
       )
     );
